@@ -1,0 +1,17 @@
+flask>=3.0
+openai>=1.0
+python-dotenv>=1.0
+langchain>=0.3
+langchain-community>=0.3
+langchain-chroma>=0.2
+langchain-text-splitters>=0.3
+langchain-core>=0.3
+langchain-openai>=0.3
+pypdf>=4.0
+python-docx>=1.1
+python-pptx>=1.0
+openpyxl>=3.1
+beautifulsoup4>=4.12
+pymupdf>=1.24
+pymupdf>=1.24
+chromadb>=0.5
