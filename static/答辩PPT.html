@@ -6,498 +6,602 @@
 <title>文档智能分析系统 — 答辩演示</title>
 <style>
 :root {
-  --bg: #0f0f14;
-  --surface: #1a1a24;
-  --border: #2a2a3a;
-  --text: #e8e8ed;
-  --text2: #9090a8;
-  --accent: #6c8cff;
-  --accent2: #44d4b4;
-  --warn: #f0a040;
-  --danger: #f06070;
-  --radius: 14px;
+  --bg: #0d0d14;
+  --surface: #181825;
+  --border: #2a2a3e;
+  --text: #e4e4ec;
+  --text2: #9090aa;
+  --accent: #7b9bff;
+  --green: #44d4a8;
+  --warn: #f0a848;
+  --danger: #f06078;
+  --radius: 12px;
 }
 
 * { margin:0; padding:0; box-sizing:border-box; }
 
 body {
-  font-family: "PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;
+  font-family: "PingFang SC","Microsoft YaHei",sans-serif;
   background: var(--bg);
   color: var(--text);
-  overflow: hidden;
   height: 100vh;
+  overflow: hidden;
+  display:flex; flex-direction:column;
 }
 
-.slides { width:100%; height:100vh; position:relative; }
+/* ── Main stage ── */
+.stage { flex:1; position:relative; overflow:hidden; }
 
 .slide {
   position:absolute; inset:0;
   display:flex; flex-direction:column;
   justify-content:center; align-items:center;
-  padding: 60px 80px;
-  opacity:0; transform: translateY(30px);
-  transition: all .5s ease;
+  padding: 50px 80px 80px;
+  opacity:0; transform: translateY(20px);
+  transition: all .4s ease;
   pointer-events:none;
 }
-
 .slide.active { opacity:1; transform: translateY(0); pointer-events:auto; }
 
-/* ── Nav ── */
-.nav {
-  position:fixed; bottom:24px; right:32px; z-index:100;
-  display:flex; gap:8px; align-items:center;
+/* ── Speaker Notes Panel ── */
+.notes-panel {
+  border-top:1px solid var(--border);
+  background: #101018;
+  padding: 14px 28px;
+  min-height: 90px;
+  max-height: 160px;
+  overflow-y:auto;
+  display:flex; gap:14px;
+}
+.notes-panel .label {
+  font-size:11px; font-weight:700; color:var(--warn);
+  text-transform:uppercase; letter-spacing:1px;
+  white-space:nowrap; padding-top:3px;
+}
+.notes-panel .content {
+  font-size:14px; line-height:1.65; color:#c8c8d8;
+}
+.notes-panel .content .say  { color:var(--green); }
+.notes-panel .content .do   { color:var(--accent); }
+.notes-panel .content .warn { color:var(--warn); }
+.notes-panel .time-badge {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:6px; padding:2px 10px; font-size:12px;
+  color:var(--text2); white-space:nowrap; margin-left:auto;
 }
 
-.nav .counter { font-size:13px; color:var(--text2); margin:0 8px; }
-
-.nav button {
-  width:40px; height:40px; border-radius:50%; border:1px solid var(--border);
-  background:var(--surface); color:var(--text); cursor:pointer;
-  font-size:18px; transition:all .2s;
+/* ── Bottom bar ── */
+.bar {
+  display:flex; align-items:center; justify-content:center;
+  gap:12px; padding:8px 24px; border-top:1px solid var(--border);
+  background:var(--surface);
 }
-
-.nav button:hover { border-color:var(--accent); color:var(--accent); }
-
-/* ── Progress bar ── */
-.progress {
-  position:fixed; top:0; left:0; height:3px; background:var(--accent);
-  transition:width .4s ease; z-index:100;
+.bar button {
+  background:var(--surface); border:1px solid var(--border);
+  color:var(--text); border-radius:8px; padding:6px 14px;
+  cursor:pointer; font-size:13px; transition:.15s;
 }
+.bar button:hover { border-color:var(--accent); color:var(--accent); }
+.bar .counter { font-size:13px; color:var(--text2); min-width:60px; text-align:center; }
+.bar .title-hint { font-size:12px; color:var(--text2); }
+
+/* ── Progress ── */
+.progress { position:absolute; top:0; left:0; height:3px; background:var(--accent); transition:width .3s; z-index:10; }
 
 /* ── Typography ── */
-h1 { font-size:52px; font-weight:800; margin-bottom:20px; letter-spacing:-1px; line-height:1.15; }
-h2 { font-size:32px; font-weight:700; margin-bottom:40px; color:var(--accent); }
-h3 { font-size:18px; font-weight:600; margin-bottom:12px; }
-p  { font-size:16px; line-height:1.7; color:var(--text2); }
-.subtitle { font-size:20px; color:var(--text2); margin-bottom:8px; }
-.tags { display:flex; gap:10px; flex-wrap:wrap; margin-top:20px; justify-content:center; }
-.tag  {
-  padding:6px 16px; border-radius:20px; font-size:13px; font-weight:600;
-  background:var(--surface); border:1px solid var(--border);
-}
+h1 { font-size:48px; font-weight:800; margin-bottom:16px; letter-spacing:-1px; line-height:1.2; text-align:center; }
+h2 { font-size:28px; font-weight:700; margin-bottom:32px; color:var(--accent); text-align:center; }
+h3 { font-size:17px; font-weight:600; margin-bottom:10px; }
+p  { font-size:15px; line-height:1.7; color:var(--text2); text-align:center; max-width:800px; }
 
-/* ── Grids ── */
-.grid2 { display:grid; grid-template-columns:1fr 1fr; gap:24px; width:100%; max-width:1000px; }
-.grid3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:20px; width:100%; max-width:1000px; }
+/* ── Grids & Cards ── */
+.grid2 { display:grid; grid-template-columns:1fr 1fr; gap:20px; width:100%; max-width:960px; }
+.grid3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; width:100%; max-width:960px; }
+.grid4 { display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:14px; width:100%; max-width:960px; }
 
 .card {
   background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
-  padding:28px 24px; transition:transform .2s;
+  padding:22px 20px;
 }
+.card .icon { font-size:26px; margin-bottom:8px; }
+.card h3 { font-size:15px; margin-bottom:6px; }
+.card p  { font-size:13px; line-height:1.55; text-align:left; }
 
-.card:hover { transform:translateY(-2px); }
+/* ── Stats row ── */
+.stats { display:flex; gap:36px; justify-content:center; margin:24px 0; }
+.stat { text-align:center; }
+.stat .num { font-size:42px; font-weight:800; color:var(--accent); display:block; line-height:1.1; }
+.stat .lbl { font-size:13px; color:var(--text2); margin-top:4px; }
 
-.card .icon { font-size:28px; margin-bottom:12px; }
-.card h3 { font-size:16px; margin-bottom:8px; }
-.card p  { font-size:13px; line-height:1.6; }
-
-/* ── Code blocks ── */
-code {
-  display:block; background:#0a0a10; border:1px solid var(--border);
-  border-radius:10px; padding:20px 24px; font-size:13px; line-height:1.6;
-  color:#c8c8d8; max-width:900px; overflow-x:auto;
-  white-space:pre; font-family:"Cascadia Code","Fira Code","JetBrains Mono",monospace;
-}
-
-/* ── Tables ── */
-table {
-  border-collapse:collapse; width:100%; max-width:900px;
-  font-size:14px; margin:16px 0;
-}
-
-th {
-  background:var(--surface); color:var(--accent); text-align:left;
-  padding:10px 16px; font-weight:600; border-bottom:2px solid var(--border);
-}
-
-td {
-  padding:10px 16px; border-bottom:1px solid var(--border);
-  color:var(--text2);
-}
-
-tr:hover td { background:rgba(108,140,255,.05); }
-
-/* ── Flow diagram ── */
-.flow {
-  display:flex; align-items:center; gap:12px;
-  flex-wrap:wrap; justify-content:center; margin:20px 0;
-}
-
+/* ── Flow ── */
+.flow { display:flex; align-items:center; gap:10px; flex-wrap:wrap; justify-content:center; }
+.flow.v  { flex-direction:column; gap:6px; }
 .flow .box {
   background:var(--surface); border:1px solid var(--border);
-  border-radius:10px; padding:12px 20px; font-size:13px; text-align:center;
-  min-width:80px;
+  border-radius:8px; padding:10px 18px; font-size:13px; text-align:center;
 }
+.flow .box.hl  { border-color:var(--accent); background:rgba(123,155,255,.06); }
+.flow .box.hl2 { border-color:var(--green); background:rgba(68,212,168,.06); }
+.flow .arr { color:var(--text2); font-size:16px; }
 
-.flow .box.hl  { border-color:var(--accent); background:rgba(108,140,255,.08); }
-.flow .box.hl2 { border-color:var(--accent2); background:rgba(68,212,180,.08); }
-.flow .arr { color:var(--text2); font-size:18px; }
+/* ── Table ── */
+table { border-collapse:collapse; width:100%; max-width:900px; font-size:13px; margin:12px 0; }
+th { background:var(--surface); color:var(--accent); text-align:left; padding:8px 14px; font-weight:600; border-bottom:2px solid var(--border); }
+td { padding:8px 14px; border-bottom:1px solid var(--border); color:var(--text2); }
 
-/* ── Highlighted numbers ── */
-.num { font-size:40px; font-weight:800; color:var(--accent); display:block; }
-.num-label { font-size:13px; color:var(--text2); }
+/* ── Cover ── */
+.cover h1 { font-size:56px; background:linear-gradient(135deg,var(--accent),var(--green)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+.cover .sub  { font-size:20px; color:var(--text2); margin:8px 0 20px; }
 
-/* ── Two-column layout ── */
-.col2 {
-  display:grid; grid-template-columns:1fr 1fr; gap:40px;
-  width:100%; max-width:1000px; align-items:start;
+/* ── Tags ── */
+.tags { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-top:14px; }
+.tag { padding:5px 14px; border-radius:16px; font-size:12px; font-weight:600; background:var(--surface); border:1px solid var(--border); }
+
+/* ── Two-col ── */
+.col2 { display:grid; grid-template-columns:1fr 1fr; gap:32px; width:100%; max-width:960px; align-items:start; }
+
+/* ── Demo instructions ── */
+.demo-step { display:flex; align-items:flex-start; gap:14px; margin-bottom:14px; }
+.demo-step .num { font-size:22px; font-weight:800; color:var(--accent); min-width:28px; line-height:1.3; }
+.demo-step .body { flex:1; }
+.demo-step .do  { display:block; font-size:13px; color:var(--accent); font-weight:600; margin-bottom:2px; }
+.demo-step .say { display:block; font-size:14px; color:var(--green); line-height:1.5; }
+
+/* ── Q&A cards ── */
+.qa-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:16px 20px; margin-bottom:10px; }
+.qa-card .q { font-size:14px; font-weight:600; color:var(--warn); margin-bottom:6px; }
+.qa-card .a { font-size:13px; color:var(--text2); line-height:1.6; }
+
+/* ── Highlight spans ── */
+.hi { color:var(--accent); font-weight:600; }
+.hi2 { color:var(--green); font-weight:600; }
+
+/* ── Click hint ── */
+.click-hint {
+  position:absolute; bottom:20px; right:28px;
+  font-size:12px; color:var(--text2); opacity:.6;
 }
-
-/* ── Cover slide ── */
-.cover { text-align:center; }
-.cover h1 { font-size:60px; background:linear-gradient(135deg,var(--accent),var(--accent2)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
-.cover .subtitle { font-size:22px; margin-top:12px; }
-
-/* ── Stat row ── */
-.stats { display:flex; gap:40px; justify-content:center; margin:30px 0; }
-.stat-item { text-align:center; }
 </style>
 </head>
 <body>
 
-<div class="progress" id="progress"></div>
+<div class="stage" id="stage">
 
-<div class="slides" id="slides">
-
-<!-- ====== Slide 0: Cover ====== -->
-<section class="slide active" data-index="0">
-  <div class="cover">
+<!-- ====== 0: 封面 ====== -->
+<section class="slide active" data-title="封面">
+  <div class="cover" style="text-align:center;">
     <h1>文档智能分析系统</h1>
-    <p class="subtitle">基于 RAG 的多格式文档检索增强生成问答平台</p>
+    <p class="sub">基于 RAG 的多格式文档检索增强生成问答平台</p>
     <div class="tags">
-      <span class="tag">RAG</span>
-      <span class="tag">LangChain</span>
-      <span class="tag">Cross-Encoder Rerank</span>
-      <span class="tag">SSE 流式</span>
-      <span class="tag">ChromaDB</span>
-      <span class="tag">DashScope</span>
+      <span class="tag">RAG</span><span class="tag">LangChain</span>
+      <span class="tag">Cross-Encoder Rerank</span><span class="tag">SSE 流式</span>
+      <span class="tag">ChromaDB</span><span class="tag">DashScope</span>
     </div>
     <div class="stats">
-      <div class="stat-item"><span class="num">19</span><span class="num-label">支持格式</span></div>
-      <div class="stat-item"><span class="num">5</span><span class="num-label">大类文档</span></div>
-      <div class="stat-item"><span class="num">46</span><span class="num-label">测试用例</span></div>
-      <div class="stat-item"><span class="num">5</span><span class="num-label">轮代码审查</span></div>
+      <div class="stat"><span class="num">46</span><span class="lbl">测试用例</span></div>
+      <div class="stat"><span class="num">10</span><span class="lbl">Python 模块</span></div>
+      <div class="stat"><span class="num">5</span><span class="lbl">轮代码审查</span></div>
+      <div class="stat"><span class="num">7</span><span class="lbl">API 端点</span></div>
     </div>
   </div>
 </section>
 
-<!-- ====== Slide 1: Problem & Solution ====== -->
-<section class="slide" data-index="1">
-  <h2>问题与方案</h2>
+<!-- ====== 1: 一句话说清楚 ====== -->
+<section class="slide" data-title="项目是什么">
+  <h2>这个项目做什么？</h2>
   <div class="grid2">
     <div class="card">
-      <div class="icon">&#x1F4DA;</div>
-      <h3>痛点</h3>
-      <p>企业和个人面临海量非结构化文档（PDF/Word/PPT/Excel/扫描件），传统关键词搜索无法满足语义级深度检索需求。文档格式多样，文本提取困难。</p>
-    </div>
-    <div class="card">
-      <div class="icon">&#x1F9E0;</div>
-      <h3>方案</h3>
-      <p>构建基于 RAG 的文档智能分析系统：自动提取多格式文档文本 → 向量化存储 → Cross-Encoder 重排序 → LLM 流式生成回答。支持 19 种文件格式，PDF 三级降级 OCR。</p>
-    </div>
-    <div class="card">
-      <div class="icon">&#x1F4E4;</div>
-      <h3>输入</h3>
-      <p>PDF(含扫描版) / Word / PPT / Excel / HTML / 图片 / MD / CSV / JSON / TXT / XML / LOG — 拖拽或点击上传</p>
+      <div class="icon">&#x1F4C4;</div>
+      <h3>扔进去一个文档</h3>
+      <p>PDF、Word、PPT、Excel、扫描件、图片、网页、代码……<br>拖拽上传，自动识别格式，提取文字。</p>
     </div>
     <div class="card">
       <div class="icon">&#x1F4AC;</div>
-      <h3>输出</h3>
-      <p>基于文档内容的自然语言回答，SSE 流式逐字渲染，支持取消生成，Rerank 降级可见提示，聊天记录 localStorage 持久化</p>
+      <h3>直接用中文提问</h3>
+      <p>"这份管理办法里，学生参赛需要满足什么条件？"<br>AI 基于文档内容回答，不是瞎编。</p>
+    </div>
+    <div class="card">
+      <div class="icon">&#x1F9E0;</div>
+      <h3>怎么做到的？RAG</h3>
+      <p>文档 → 拆成小块 → 向量化 → 存进数据库<br>提问 → 向量搜索相关内容 → 喂给 LLM 生成答案</p>
+    </div>
+    <div class="card">
+      <div class="icon">&#x26A1;</div>
+      <h3>跟 ChatGPT 传文件有什么区别？</h3>
+      <p>可私有部署、不依赖外部服务、支持海量文档<br>专业的检索增强（Rerank 精排），回答更准确</p>
     </div>
   </div>
 </section>
 
-<!-- ====== Slide 2: Architecture ====== -->
-<section class="slide" data-index="2">
-  <h2>系统架构</h2>
-  <div class="flow" style="flex-direction:column;gap:16px;">
-    <div style="display:flex;gap:16px;align-items:center;">
-      <div class="box hl" style="min-width:260px;">前端 SPA<br><small>上传(进度条) + 聊天(SSE) + localStorage</small></div>
+<!-- ====== 2: 系统架构（一图胜千言） ====== -->
+<section class="slide" data-title="系统架构">
+  <h2>系统架构：三层分离</h2>
+  <div class="flow v" style="gap:4px;">
+    <div class="box hl" style="min-width:400px;">&#x1F310; 前端 SPA — 上传(进度条) + 聊天(SSE流式) + 文件管理</div>
+    <div class="arr">| HTTP 请求 / SSE 响应 |</div>
+    <div style="display:flex;gap:10px;">
+      <div class="box hl" style="width:180px;">routes.py<br><small>路由层<br>7 个端点</small></div>
+      <div class="box" style="width:180px;">middleware.py<br><small>中间件层<br>安全/限流/认证</small></div>
+      <div class="box hl2" style="width:180px;">state_manager.py<br><small>状态管理层<br>KnowledgeBase<br>+ threading.Lock</small></div>
     </div>
-    <div class="arr">&#x2195;</div>
-    <div style="display:flex;gap:16px;align-items:center;">
-      <div class="box hl">Flask 路由层<br><small>7 endpoints · pre-flight rerank · SSE cancel</small></div>
-      <div class="box">安全中间件<br><small>限流·认证·CSP·XSS·文件名净化</small></div>
-      <div class="box hl2">KnowledgeBase<br><small>Class + Lock · 向量库 · 文件状态</small></div>
+    <div class="arr">| 业务模块调用 |</div>
+    <div style="display:flex;gap:8px;">
+      <div class="box">document<br>_loader</div>
+      <div class="box">text<br>_processor</div>
+      <div class="box">vector<br>_store</div>
+      <div class="box hl2">rerank<br><small>gte-rerank</small></div>
+      <div class="box">qa_chain<br><small>deepseek-v3</small></div>
     </div>
-    <div class="arr">&#x2195;</div>
-    <div style="display:flex;gap:16px;align-items:center;">
-      <div class="box">document_loader<br><small>5 大类 · PDF 三级 OCR</small></div>
-      <div class="box">text_processor<br><small>分块 · JSON · frozen dataclass</small></div>
-      <div class="box">vector_store<br><small>DashScopeEmbed · Chroma</small></div>
-      <div class="box hl2">rerank<br><small>gte-rerank · degraded flag</small></div>
-      <div class="box">qa_chain<br><small>LCEL · deepseek-v3</small></div>
-    </div>
-    <div class="arr">&#x2195;</div>
-    <div style="display:flex;gap:16px;align-items:center;">
-      <div class="box" style="min-width:200px;">DashScope API<br><small>LLM · Embed · Rerank · OCR</small></div>
-      <div class="box" style="min-width:200px;">ChromaDB<br><small>持久化向量库</small></div>
-      <div class="box" style="min-width:200px;">文件系统<br><small>uploads/ · json/ · state.json</small></div>
+    <div class="arr">| API 调用 / 磁盘读写 |</div>
+    <div style="display:flex;gap:10px;">
+      <div class="box" style="min-width:180px;">DashScope API<br><small>LLM · Embed · Rerank · OCR</small></div>
+      <div class="box" style="min-width:180px;">ChromaDB<br><small>向量持久化</small></div>
+      <div class="box" style="min-width:180px;">文件系统<br><small>uploads/ · json/ · state.json</small></div>
     </div>
   </div>
 </section>
 
-<!-- ====== Slide 3: PDF OCR ====== -->
-<section class="slide" data-index="3">
-  <h2>PDF 三级降级 OCR 策略</h2>
-  <div class="flow" style="flex-direction:column;gap:0;">
-    <div class="box" style="min-width:360px;">PDF 文件上传</div>
-    <div class="arr">&#x2195;</div>
-    <div class="box hl" style="min-width:360px;">第1步: PyPDF 提取文本层<br><small>最快 · 适用于文字型 PDF</small></div>
-    <div style="display:flex;align-items:center;gap:12px;"><span style="color:var(--accent2);">&#x2713; 有内容 → 直接返回</span><span style="color:var(--text2);margin-left:30px;">&#x2717; 空 → 继续</span></div>
-    <div class="arr">&#x2195;</div>
-    <div class="box hl" style="min-width:360px;">第2步: PyMuPDF (fitz) 提取<br><small>兼容更多 PDF 变体</small></div>
-    <div style="display:flex;align-items:center;gap:12px;"><span style="color:var(--accent2);">&#x2713; 有内容 → 返回</span><span style="color:var(--text2);margin-left:30px;">&#x2717; 空 → 继续</span></div>
-    <div class="arr">&#x2195;</div>
-    <div class="box hl2" style="min-width:360px;">第3步: 逐页渲染 PNG → DashScope qwen-vl-max OCR<br><small>扫描版/图片型 PDF · 零本地模型依赖</small></div>
-    <div style="display:flex;align-items:center;gap:12px;"><span style="color:var(--accent2);">&#x2713; 有内容 → 返回</span><span style="color:var(--danger);margin-left:30px;">&#x2717; 空 → EmptyDocumentError 友好提示</span></div>
+<!-- ====== 3: PDF 三级 OCR ====== -->
+<section class="slide" data-title="PDF OCR 策略">
+  <h2>核心技术亮点 — PDF 三级降级 OCR</h2>
+  <div class="flow v">
+    <div class="box hl" style="min-width:380px;font-size:14px;">&#x1F4C4; PDF 文件上传</div>
+    <div class="arr">&#x2193;</div>
+    <div class="box hl" style="min-width:380px;">&#x2460; PyPDF — 读取文本层<br><small>最快，适用于常规文字型 PDF</small></div>
+    <div style="font-size:13px;"><span class="hi2">&#x2713; 有文字 → 直接返回</span> &nbsp;&nbsp; <span style="color:var(--text2);">&#x2717; 空 → 进入第 2 步</span></div>
+    <div class="arr">&#x2193;</div>
+    <div class="box hl" style="min-width:380px;">&#x2461; PyMuPDF (fitz) — 渲染引擎提取<br><small>兼容更多 PDF 变体，提取率更高</small></div>
+    <div style="font-size:13px;"><span class="hi2">&#x2713; 有文字 → 返回</span> &nbsp;&nbsp; <span style="color:var(--text2);">&#x2717; 空 → 进入第 3 步</span></div>
+    <div class="arr">&#x2193;</div>
+    <div class="box hl2" style="min-width:380px;">&#x2462; DashScope qwen-vl-max 多模态 OCR<br><small>逐页渲染为图片 → AI 识别文字 → 扫描版也能提取</small></div>
+    <div style="font-size:13px;"><span class="hi2">&#x2713; 有文字 → 返回</span> &nbsp;&nbsp; <span style="color:var(--danger);">&#x2717; 空 → EmptyDocumentError</span></div>
   </div>
-  <p style="margin-top:24px;text-align:center;">为何选择 API OCR？Python 3.13 + Windows 环境下 PaddleOCR/EasyOCR 存在 NumPy 版本冲突，DashScope 云端方案零本地模型(~2GB)，中文识别准确率高</p>
 </section>
 
-<!-- ====== Slide 4: RAG Pipeline ====== -->
-<section class="slide" data-index="4">
-  <h2>RAG 管线：Pre-flight 检索 + Rerank</h2>
+<!-- ====== 4: Rerank ====== -->
+<section class="slide" data-title="Rerank 重排序">
+  <h2>核心技术亮点 — Cross-Encoder Rerank</h2>
   <div class="col2">
     <div>
-      <h3>Phase 1 — 检索 + 重排序</h3>
-      <div class="flow" style="flex-direction:column;gap:8px;">
-        <div class="box hl">用户问题</div>
-        <div class="arr">&#x2195;</div>
-        <div class="box">kb.get_retriever().invoke()<br><small>向量相似度检索 12 条候选</small></div>
-        <div class="arr">&#x2195;</div>
-        <div class="box hl2">rerank_documents()<br><small>gte-rerank cross-encoder 精选 Top-4</small></div>
-        <div class="arr">&#x2195;</div>
-        <div class="box">RerankResult(docs, degraded)<br><small>degraded=True? → SSE warning 事件</small></div>
+      <h3>没有 Rerank（仅向量检索）</h3>
+      <div class="flow v">
+        <div class="box">query + doc 各自独立编码</div>
+        <div class="arr">&#x2193;</div>
+        <div class="box" style="border-color:var(--warn);">余弦相似度排序<br><small>差：query/doc 之间没有交互</small></div>
+        <div class="arr">&#x2193;</div>
+        <div class="box">返回 Top-4</div>
       </div>
     </div>
     <div>
-      <h3>Phase 2 — LLM 流式生成</h3>
-      <div class="flow" style="flex-direction:column;gap:8px;">
-        <div class="box hl2">create_chain_from_docs(docs)</div>
-        <div class="arr">&#x2195;</div>
-        <div class="box">LCEL: RunnablePassthrough<br><small>&#x2192; &#123;context, input&#125; &#x2192; Prompt &#x2192; LLM</small></div>
-        <div class="arr">&#x2195;</div>
-        <div class="box">deepseek-v3.2-exp streaming<br><small>逐 token 产出</small></div>
-        <div class="arr">&#x2195;</div>
-        <div class="box hl">SSE 流式输出<br><small>cancel_event 检查 · GeneratorExit 捕获</small></div>
+      <h3>有 Rerank（加 Cross-Encoder）</h3>
+      <div class="flow v">
+        <div class="box hl">向量初检 12 条候选</div>
+        <div class="arr">&#x2193;</div>
+        <div class="box hl2" style="border-color:var(--green);">gte-rerank 逐对精算<br><small>(query, doc) 拼接 → 全注意力 → 精确评分</small></div>
+        <div class="arr">&#x2193;</div>
+        <div class="box hl2">精选 Top-4 → LLM</div>
       </div>
-    </div>
-  </div>
-  <table style="margin-top:24px;">
-    <tr><th>对比</th><th>Bi-Encoder (仅向量)</th><th>Cross-Encoder (Rerank)</th></tr>
-    <tr><td>交互方式</td><td>query/doc 独立编码</td><td>(query, doc) 拼接全注意力</td></tr>
-    <tr><td>精度</td><td>粗筛</td><td>精排</td></tr>
-    <tr><td>速度</td><td>快</td><td>慢（仅对 top-12 候选）</td></tr>
-  </table>
-</section>
-
-<!-- ====== Slide 5: Backend Architecture ====== -->
-<section class="slide" data-index="5">
-  <h2>后端三层分离 + 线程安全</h2>
-  <div class="grid3">
-    <div class="card">
-      <div class="icon">&#x1F4E1;</div>
-      <h3>routes.py (~155行)</h3>
-      <p>Flask Blueprint 6 端点<br>pre-flight rerank<br>SSE stream_id 取消<br>自定义异常分级响应<br>DocumentLoaderError → 400<br>通用异常 → 500</p>
-    </div>
-    <div class="card">
-      <div class="icon">&#x1F6E1;</div>
-      <h3>middleware.py (~85行)</h3>
-      <p>sanitize_filename 文件净化<br>check_rate_limit 滑动窗口<br>require_auth 可选认证<br>CSP/X-Frame/Referrer 安全头<br>_requests_store 定期清理</p>
-    </div>
-    <div class="card">
-      <div class="icon">&#x1F512;</div>
-      <h3>state_manager.py (~160行)</h3>
-      <p>KnowledgeBase Class<br>threading.Lock 全保护<br>_write_state_file I/O 锁外<br>in-place mutation 防引用陷阱<br>kb 模块单例</p>
     </div>
   </div>
   <table style="margin-top:20px;">
-    <tr><th>之前</th><th>之后</th></tr>
-    <tr><td>app.py 330 行巨石</td><td>5 个文件，每个 &lt;160 行</td></tr>
-    <tr><td>模块级全局变量</td><td>Class 封装 + threading.Lock</td></tr>
-    <tr><td>import 引用陷阱 (重启丢数据)</td><td>in-place mutation + 属性访问</td></tr>
-    <tr><td>静默 fallback (用户无感知)</td><td>RerankResult.degraded + SSE warning</td></tr>
-    <tr><td>Flask 默认 500 HTML</td><td>分级异常 + JSON 响应 + 中文提示</td></tr>
+    <tr><th></th><th>Bi-Encoder (仅向量)</th><th>Cross-Encoder (Rerank)</th></tr>
+    <tr><td>交互方式</td><td>query 和 doc 分开编码</td><td>(query, doc) 拼接后全注意力计算</td></tr>
+    <tr><td>精度</td><td><span style="color:var(--warn);">粗筛，容易漏</span></td><td><span class="hi2">精排，准确率显著提升</span></td></tr>
+    <tr><td>开销</td><td>快</td><td>仅对 12 条候选做，几乎无感</td></tr>
+    <tr><td>容错</td><td>—</td><td><span class="hi2">API 故障→自动降级，前端黄色提示</span></td></tr>
   </table>
 </section>
 
-<!-- ====== Slide 6: Security ====== -->
-<section class="slide" data-index="6">
+<!-- ====== 5: 后端架构演进 ====== -->
+<section class="slide" data-title="后端架构">
+  <h2>工程实践 — 从巨石到三层分离</h2>
+  <table>
+    <tr><th></th><th>重构前</th><th>重构后</th></tr>
+    <tr><td>代码组织</td><td style="color:var(--warn);">app.py 330 行巨石</td><td class="hi2">5 个文件，每个 < 220 行</td></tr>
+    <tr><td>状态管理</td><td style="color:var(--warn);">模块级全局变量<br>import 引用陷阱（重启丢数据）</td><td class="hi2">KnowledgeBase Class<br>+ threading.Lock 线程安全</td></tr>
+    <tr><td>错误处理</td><td style="color:var(--warn);">Flask 默认 500 HTML</td><td class="hi2">自定义异常分级<br>DocumentLoaderError → 友好中文</td></tr>
+    <tr><td>Rerank 降级</td><td style="color:var(--warn);">静默 fallback（用户无感知）</td><td class="hi2">RerankResult.degraded<br>+ SSE warning 事件 → 前端黄色提示</td></tr>
+    <tr><td>流式控制</td><td style="color:var(--warn);">无法取消</td><td class="hi2">stream_id + threading.Event<br>+ sendBeacon 自动取消</td></tr>
+    <tr><td>测试</td><td style="color:var(--warn);">0</td><td class="hi2">46 项 pytest（4 个模块全覆盖）</td></tr>
+  </table>
+</section>
+
+<!-- ====== 6: 安全设计 ====== -->
+<section class="slide" data-title="安全设计">
   <h2>安全设计 — 8 层防护</h2>
   <table>
-    <tr><th>层级</th><th>措施</th><th>实现</th></tr>
-    <tr><td>1. 传输</td><td>文件大小限制</td><td>MAX_CONTENT_LENGTH = 32MB → 413</td></tr>
-    <tr><td>2. 应用</td><td>频率限制</td><td>upload: 10次/h, chat: 30次/min → 429</td></tr>
-    <tr><td>3. 认证</td><td>API Token (可选)</td><td>Bearer Token 装饰器, 未配置跳过</td></tr>
-    <tr><td>4. 头部</td><td>安全响应头</td><td>CSP / X-Frame-Options: DENY / nosniff</td></tr>
-    <tr><td>5. 输入</td><td>文件名净化 + 长度限制</td><td>sanitize_filename() + 2000 字符上限</td></tr>
-    <tr><td>6. 输出</td><td>零 XSS 架构</td><td>禁用 innerHTML · 全量 textContent · 事件委托</td></tr>
-    <tr><td>7. 日志</td><td>分级异常 + 脱敏</td><td>DocumentLoaderError → 友好中文; exc_info=True 记录详情</td></tr>
-    <tr><td>8. 部署</td><td>服务绑定 + 调试控制</td><td>127.0.0.1 · FLASK_DEBUG 环境变量</td></tr>
+    <tr><th>#</th><th>层级</th><th>措施</th><th>怎么做的</th></tr>
+    <tr><td>1</td><td>传输层</td><td>文件大小限制</td><td>Flask MAX_CONTENT_LENGTH = 32MB，超了直接 413</td></tr>
+    <tr><td>2</td><td>应用层</td><td>频率限制</td><td>滑动窗口：上传 10次/时，问答 30次/分，触发返回 429</td></tr>
+    <tr><td>3</td><td>认证层</td><td>API Token（可选）</td><td>Bearer Token 装饰器，不配就跳过，配了就校验</td></tr>
+    <tr><td>4</td><td>头部层</td><td>安全响应头</td><td>CSP / X-Frame-Options DENY / X-Content-Type nosniff</td></tr>
+    <tr><td>5</td><td>输入层</td><td>文件名净化 + 长度限制</td><td>Unicode 规范 → 去控制字符 → 替换危险符号 → 200字符截断</td></tr>
+    <tr><td>6</td><td>输出层</td><td>零 XSS 架构</td><td>全局禁用 innerHTML，只用 textContent + DOM API + 事件委托</td></tr>
+    <tr><td>7</td><td>日志层</td><td>分级异常 + 脱敏</td><td>DocumentLoaderError 子类 → 友好中文；exc_info=True 记录详情</td></tr>
+    <tr><td>8</td><td>部署层</td><td>服务绑定 + 调试控制</td><td>127.0.0.1 仅本地监听；FLASK_DEBUG 环境变量控制</td></tr>
   </table>
-  <p style="margin-top:16px;text-align:center;">API Key 从不硬编码 · .env gitignored · 启动时 RuntimeError 校验 · 限流字典定期清理防内存泄漏</p>
 </section>
 
-<!-- ====== Slide 7: Frontend ====== -->
-<section class="slide" data-index="7">
-  <h2>前端特性</h2>
-  <div class="grid2">
-    <div class="card"><div class="icon">&#x1F4E4;</div><h3>拖拽上传 + 进度条</h3><p>XMLHttpRequest.upload.onprogress 实时百分比，替换 fetch 无进度反馈</p></div>
-    <div class="card"><div class="icon">&#x1F4DD;</div><h3>聊天持久化</h3><p>localStorage 保存/恢复消息 · 刷新不丢失 · 上限 200 条 · 清除按钮</p></div>
-    <div class="card"><div class="icon">&#x23F9;</div><h3>流式取消</h3><p>stream_id + navigator.sendBeacon cancel · 停止按钮 · beforeunload 自动取消</p></div>
-    <div class="card"><div class="icon">&#x26A0;</div><h3>Rerank 降级可见</h3><p>SSE warning 事件 → 黄色提示条：用户可知检索质量下降</p></div>
-    <div class="card"><div class="icon">&#x1F6E1;</div><h3>零 XSS 架构</h3><p>禁用 innerHTML · 全量 DOM API + textContent · 事件委托 · 无 eval</p></div>
-    <div class="card"><div class="icon">&#x1F3A8;</div><h3>响应式双栏</h3><p>左侧知识库管理 + 右侧 AI 问答 · 状态指示器 · 文件类型图标 · DOM 更新守卫</p></div>
+<!-- ====== 7: 前端特性 ====== -->
+<section class="slide" data-title="前端特性">
+  <h2>前端特性 — 用户体验细节</h2>
+  <div class="grid3">
+    <div class="card"><div class="icon">&#x1F4E4;</div><h3>拖拽上传 + 进度条</h3><p>XMLHttpRequest.upload.onprogress，大文件上传有实时百分比反馈</p></div>
+    <div class="card"><div class="icon">&#x1F4DD;</div><h3>聊天持久化</h3><p>localStorage 自动保存，刷新/关闭页面后聊天记录不丢失，上限 200 条</p></div>
+    <div class="card"><div class="icon">&#x23F9;</div><h3>流式取消</h3><p>停止按钮 + 关闭页面自动 sendBeacon cancel → 停止 token 消耗</p></div>
+    <div class="card"><div class="icon">&#x26A0;</div><h3>Rerank 降级可见</h3><p>API 异常 → 前端黄色提示条，用户知道检索质量暂时下降，不困惑</p></div>
+    <div class="card"><div class="icon">&#x1F6E1;</div><h3>零 XSS 架构</h3><p>设计层面禁用 innerHTML，只用 DOM API，从根上杜绝注入攻击</p></div>
+    <div class="card"><div class="icon">&#x1F4F1;</div><h3>响应式双栏</h3><p>左侧知识库 + 右侧问答，DOM 更新守卫避免无变化时重绘</p></div>
   </div>
 </section>
 
-<!-- ====== Slide 8: Code Quality ====== -->
-<section class="slide" data-index="8">
-  <h2>代码质量与测试</h2>
+<!-- ====== 8: 测试与质量 ====== -->
+<section class="slide" data-title="测试与代码质量">
+  <h2>代码质量 — 46 项测试 + 5 轮审查</h2>
   <div class="col2">
     <div>
-      <h3>设计原则</h3>
+      <h3>pytest 测试覆盖</h3>
       <table>
-        <tr><th>原则</th><th>实例</th></tr>
-        <tr><td>单一职责</td><td>10 个独立模块，每个 &lt;160 行</td></tr>
-        <tr><td>开闭原则</td><td>LOADERS 注册表，新增格式不改代码</td></tr>
-        <tr><td>依赖倒置</td><td>qa_chain 依赖 retriever 抽象接口</td></tr>
-        <tr><td>不可变性</td><td>ProcessResult / RerankResult frozen dataclass</td></tr>
-        <tr><td>线程安全</td><td>KnowledgeBase + threading.Lock</td></tr>
-        <tr><td>防御性</td><td>空 chunk 守卫 · try/finally · OSError 捕获</td></tr>
+        <tr><th>模块</th><th>用例数</th><th>覆盖内容</th></tr>
+        <tr><td>text_processor</td><td>17</td><td>拆分/JSON/frozen dataclass — <span class="hi2">100%</span></td></tr>
+        <tr><td>state_manager</td><td>15</td><td>初始化/文件增删/线程安全/持久化/启动恢复</td></tr>
+        <tr><td>rerank</td><td>7</td><td>空输入/不足/成功/API 降级/degraded 标记</td></tr>
+        <tr><td>document_loader</td><td>7</td><td>所有异常子类/格式检测/空文档</td></tr>
+        <tr style="font-weight:700;"><td>合计</td><td>46</td><td class="hi2">全部通过，零失败</td></tr>
       </table>
     </div>
     <div>
-      <h3>测试覆盖 (pytest)</h3>
+      <h3>5 轮代码审查</h3>
       <table>
-        <tr><th>模块</th><th>用例</th><th>覆盖</th></tr>
-        <tr><td>text_processor</td><td>17</td><td>100%</td></tr>
-        <tr><td>state_manager</td><td>15</td><td>init/文件/线程安全</td></tr>
-        <tr><td>rerank</td><td>7</td><td>空/不足/成功/降级</td></tr>
-        <tr><td>document_loader</td><td>7</td><td>异常类/加载</td></tr>
-        <tr style="font-weight:700;"><td>合计</td><td>46</td><td>全部通过</td></tr>
+        <tr><th>轮次</th><th>类型</th><th>结果</th></tr>
+        <tr><td>1</td><td>安全审查</td><td>3 CRITICAL + 5 HIGH → 全部修复</td></tr>
+        <tr><td>2</td><td>简化审查</td><td>2 HIGH + 8 MEDIUM → 全部修复</td></tr>
+        <tr><td>3</td><td>安全审计</td><td>0 CRITICAL, 0 HIGH</td></tr>
+        <tr><td>4</td><td>架构重构</td><td>Class 化 + rerank 降级 + SSE 取消</td></tr>
+        <tr><td>5</td><td>简化审查</td><td>BUG 修复 + 锁外 I/O + 内存泄漏</td></tr>
       </table>
-      <h3 style="margin-top:20px;">5 轮代码审查</h3>
-      <p>安全审查 → 简化审查 → 安全审计 → 架构重构 → 简化审查<br><small>0 CRITICAL · 0 HIGH · 全部修复</small></p>
     </div>
   </div>
 </section>
 
-<!-- ====== Slide 9: Innovations ====== -->
-<section class="slide" data-index="9">
+<!-- ====== 9: 创新点总结 ====== -->
+<section class="slide" data-title="创新点">
   <h2>创新点总结</h2>
-  <h3>技术创新</h3>
-  <div class="grid3" style="margin-bottom:30px;">
-    <div class="card"><div class="icon">&#x1F4D6;</div><h3>PDF 三级 OCR</h3><p>PyPDF → PyMuPDF → qwen-vl-max 云端 OCR，自动适配文本/扫描/混合型</p></div>
-    <div class="card"><div class="icon">&#x1F3AF;</div><h3>Rerank + 降级通知</h3><p>gte-rerank cross-encoder · RerankResult.degraded · SSE warning 可见</p></div>
-    <div class="card"><div class="icon">&#x2601;</div><h3>云端 OCR</h3><p>DashScope 多模态 API · 零本地模型 · 零版本冲突</p></div>
-    <div class="card"><div class="icon">&#x1F4E1;</div><h3>Pre-flight 架构</h3><p>检索/重排/生成三阶段独立可监控可降级</p></div>
-    <div class="card"><div class="icon">&#x23F9;</div><h3>SSE 取消机制</h3><p>stream_id + Event + sendBeacon · 停止 token 消耗</p></div>
-    <div class="card"><div class="icon">&#x1F512;</div><h3>线程安全 Class</h3><p>KnowledgeBase + Lock · 消除 import 引用陷阱</p></div>
-  </div>
-  <h3>工程创新</h3>
   <div class="grid2">
-    <div><p>&#x2713; Loader Registry 模式 — 新增格式 1 行</p><p>&#x2713; 三层分离 + Class 状态管理</p><p>&#x2713; 自定义异常分级 — 不再 500 HTML</p><p>&#x2713; 知识库持久化 + in-place mutation</p></div>
-    <div><p>&#x2713; 前端三改 — localStorage + 进度 + 取消</p><p>&#x2713; 零 XSS 前端架构</p><p>&#x2713; 46 项 pytest 含线程安全并发测试</p><p>&#x2713; Windows 兼容性经过实际测试</p></div>
+    <div class="card"><div class="icon">&#x1F4D6;</div><h3>PDF 三级降级 OCR</h3><p>PyPDF → PyMuPDF → qwen-vl-max，自动适配文本/扫描/混合型 PDF。选云端方案而非本地 OCR，因为 Python 3.13 + Windows 下 PaddleOCR 存在 NumPy 版本冲突</p></div>
+    <div class="card"><div class="icon">&#x1F3AF;</div><h3>Cross-Encoder Rerank + 降级通知</h3><p>初检 12 → 精选 4，检索质量提升性价比最高的单点改动。API 异常时自动降级，前端黄色提示让用户可感知</p></div>
+    <div class="card"><div class="icon">&#x1F512;</div><h3>线程安全 KnowledgeBase Class</h3><p>threading.Lock 保护所有共享状态，in-place mutation 解决 Python import 引用陷阱（重启丢数据根因）</p></div>
+    <div class="card"><div class="icon">&#x1F4E1;</div><h3>Pre-flight 检索 + SSE 取消</h3><p>检索/重排/生成三阶段独立可监控可降级。stream_id + threading.Event 实现流式取消，离开页面自动停止 token 消耗</p></div>
+    <div class="card"><div class="icon">&#x1F3D7;</div><h3>三层分离架构</h3><p>routes / middleware / KnowledgeBase Class，可独立测试，不依赖 Flask test client。自定义异常分级，不再出现 500 HTML 页面</p></div>
+    <div class="card"><div class="icon">&#x2705;</div><h3>TDD 测试驱动</h3><p>46 项 pytest 用例含线程安全并发测试。frozen dataclass 不可变性验证。5 轮代码审查零 CRITICAL 零 HIGH</p></div>
   </div>
 </section>
 
-<!-- ====== Slide 10: Demo ====== -->
-<section class="slide" data-index="10">
-  <h2>演示流程</h2>
+<!-- ====== 10: 演示流程 ====== -->
+<section class="slide" data-title="演示流程">
+  <h2>演示流程 — 按这个顺序操作</h2>
   <div class="col2">
     <div>
-      <div class="flow" style="flex-direction:column;gap:12px;align-items:flex-start;">
-        <div style="display:flex;align-items:center;gap:10px;"><span style="font-size:24px;min-width:32px;">1</span><span>打开页面 → 状态 "等待文件上传"</span></div>
-        <div style="display:flex;align-items:center;gap:10px;"><span style="font-size:24px;min-width:32px;">2</span><span>上传普通 PDF → 显示 chunks · 知识库就绪</span></div>
-        <div style="display:flex;align-items:center;gap:10px;"><span style="font-size:24px;min-width:32px;">3</span><span>上传扫描版 PDF → OCR 逐页识别</span></div>
-        <div style="display:flex;align-items:center;gap:10px;"><span style="font-size:24px;min-width:32px;">4</span><span>上传 Word/PPT/Excel/图片 → 自动追加</span></div>
-        <div style="display:flex;align-items:center;gap:10px;"><span style="font-size:24px;min-width:32px;">5</span><span>提问 → SSE 逐字流式回答</span></div>
-        <div style="display:flex;align-items:center;gap:10px;"><span style="font-size:24px;min-width:32px;">6</span><span>重启服务 → 文件列表自动恢复</span></div>
-        <div style="display:flex;align-items:center;gap:10px;"><span style="font-size:24px;min-width:32px;">7</span><span>停止按钮 / 刷新页面 → 流取消</span></div>
-        <div style="display:flex;align-items:center;gap:10px;"><span style="font-size:24px;min-width:32px;">8</span><span>刷新页面 → 聊天记录恢复</span></div>
+      <div class="demo-step">
+        <span class="num">1</span>
+        <div class="body">
+          <span class="do">&#x1F5B1; 打开 http://localhost:5000</span>
+          <span class="say">"打开后左侧显示知识库管理面板，状态是'等待文件上传'"</span>
+        </div>
+      </div>
+      <div class="demo-step">
+        <span class="num">2</span>
+        <div class="body">
+          <span class="do">&#x1F4C2; 拖一个 PDF 到上传区域</span>
+          <span class="say">"拖拽一个文字型 PDF，系统自动提取文本、分块、向量化，右侧显示 chunk 数量和字符数，知识库状态变为'就绪'"</span>
+        </div>
+      </div>
+      <div class="demo-step">
+        <span class="num">3</span>
+        <div class="body">
+          <span class="do">&#x1F4AC; 在聊天框输入问题</span>
+          <span class="say">"'这份文档里关于XX是怎么规定的？'——AI 逐字流式回答，不是瞬间弹出一大段"</span>
+        </div>
+      </div>
+      <div class="demo-step">
+        <span class="num">4</span>
+        <div class="body">
+          <span class="do">&#x1F504; 关掉服务器，重新 python app.py，刷新页面</span>
+          <span class="say">"文件列表自动恢复——因为 knowledge_state.json 和 chroma_db 都是持久化的，重启不需要重新上传"</span>
+        </div>
       </div>
     </div>
     <div>
-      <h3>关键测试用例</h3>
-      <table>
-        <tr><th>场景</th><th>预期</th></tr>
-        <tr><td>文字型 PDF</td><td>PyPDF 提取成功</td></tr>
-        <tr><td>扫描版 PDF</td><td>三级降级 → OCR 成功</td></tr>
-        <tr><td>不支持格式 .exe</td><td>UnsupportedFileTypeError</td></tr>
-        <tr><td>超大文件 >32MB</td><td>413 错误</td></tr>
-        <tr><td>无文件提问</td><td>"请先上传文件"</td></tr>
-        <tr><td>限流 >30次/min</td><td>429 "请求过于频繁"</td></tr>
-        <tr><td>Rerank API 不可用</td><td>黄色警告 + 正常回答</td></tr>
-        <tr><td>停止生成</td><td>token 停止 · 保留已生成</td></tr>
-      </table>
+      <div class="demo-step">
+        <span class="num">5</span>
+        <div class="body">
+          <span class="do">&#x1F5D1; 点文件旁的 × 删除</span>
+          <span class="say">"点删除按钮，文件、JSON、向量数据、状态文件全部清理干净"</span>
+        </div>
+      </div>
+      <div class="demo-step">
+        <span class="num">6</span>
+        <div class="body">
+          <span class="do">&#x23F9; 生成回答时点停止按钮</span>
+          <span class="say">"流式生成中途可以停止，保留已生成内容。关闭页面也会自动取消，不浪费 token"</span>
+        </div>
+      </div>
+      <div class="demo-step">
+        <span class="num">7</span>
+        <div class="body">
+          <span class="do">&#x1F4C4; 再传一个扫描版 PDF</span>
+          <span class="say">"这是一个纯图片扫描版 PDF——看控制台，PyPDF 空 → PyMuPDF 空 → 自动启动 OCR 逐页识别 → 成功提取"</span>
+        </div>
+      </div>
+      <div class="demo-step">
+        <span class="num">8</span>
+        <div class="body">
+          <span class="do">&#x1F4CA; 上传 Word / Excel / PPT / 图片</span>
+          <span class="say">"支持 5 大类 19 种格式，每种自动匹配对应的加载器，无需手动选择文件类型"</span>
+        </div>
+      </div>
     </div>
   </div>
 </section>
 
-<!-- ====== Slide 11: Tech Stack ====== -->
-<section class="slide" data-index="11">
-  <h2>技术栈</h2>
+<!-- ====== 11: 技术栈 ====== -->
+<section class="slide" data-title="技术栈">
+  <h2>技术栈一览</h2>
   <table>
-    <tr><th>层级</th><th>技术</th><th>理由</th></tr>
-    <tr><td>Web 框架</td><td>Flask 3.x</td><td>轻量灵活，快速原型</td></tr>
-    <tr><td>问答模型</td><td>DeepSeek-V3 (DashScope)</td><td>中文能力强，OpenAI 兼容</td></tr>
-    <tr><td>嵌入模型</td><td>DashScope text-embedding-v2</td><td>同平台低延迟，中文优化</td></tr>
-    <tr><td>OCR</td><td>DashScope qwen-vl-max</td><td>云端 OCR，零本地依赖</td></tr>
-    <tr><td>向量数据库</td><td>ChromaDB</td><td>轻量嵌入式，持久化增量</td></tr>
-    <tr><td>Rerank</td><td>DashScope gte-rerank</td><td>Cross-encoder 精排</td></tr>
-    <tr><td>PDF 解析</td><td>PyPDF + PyMuPDF (fitz)</td><td>双重提取，覆盖文本+渲染层</td></tr>
-    <tr><td>文档解析</td><td>python-docx/pptx · openpyxl · BS4</td><td>各格式成熟库</td></tr>
-    <tr><td>LLM 框架</td><td>LangChain 0.3+</td><td>LCEL 声明式链</td></tr>
-    <tr><td>前端</td><td>原生 HTML/CSS/JS</td><td>零框架 · 体积小 · 加载快</td></tr>
+    <tr><th>层级</th><th>选型</th><th>为什么选它</th></tr>
+    <tr><td>Web 框架</td><td>Flask 3.x</td><td>轻量，无过度抽象，适合 API 服务</td></tr>
+    <tr><td>LLM</td><td>DeepSeek-V3（DashScope）</td><td>中文能力强，OpenAI 兼容接口，切换模型零成本</td></tr>
+    <tr><td>嵌入模型</td><td>DashScope text-embedding-v2</td><td>与 LLM 同平台低延迟，1024 维中文优化</td></tr>
+    <tr><td>OCR</td><td>DashScope qwen-vl-max</td><td>云端多模态，零本地模型文件，中文准确率高</td></tr>
+    <tr><td>Rerank</td><td>DashScope gte-rerank</td><td>Cross-encoder 精排，检索质量核心提升</td></tr>
+    <tr><td>向量数据库</td><td>ChromaDB</td><td>嵌入式、持久化、增量追加，不需要单独部署服务</td></tr>
+    <tr><td>LLM 框架</td><td>LangChain 0.3+</td><td>LCEL 声明式链式调用，模块可替换</td></tr>
+    <tr><td>前端</td><td>原生 HTML/CSS/JS</td><td>零框架依赖，加载即用，不依赖 npm</td></tr>
+    <tr><td>测试</td><td>pytest</td><td>46 项用例，带覆盖率统计</td></tr>
   </table>
 </section>
 
-<!-- ====== Slide 12: Future ====== -->
-<section class="slide" data-index="12">
-  <h2>未来扩展</h2>
-  <div class="grid3">
-    <div class="card"><div class="icon">&#x1F465;</div><h3>多用户与权限</h3><p>用户系统 · 独立知识库 · RBAC</p></div>
-    <div class="card"><div class="icon">&#x1F50D;</div><h3>混合检索</h3><p>BM25 关键词 + 向量语义融合排序</p></div>
-    <div class="card"><div class="icon">&#x1F4AC;</div><h3>多轮对话记忆</h3><p>对话历史上下文 · 追问澄清</p></div>
-    <div class="card"><div class="icon">&#x1F433;</div><h3>Docker 容器化</h3><p>一键启动 · 环境隔离 · 生产部署</p></div>
-    <div class="card"><div class="icon">&#x1F3A8;</div><h3>前端框架升级</h3><p>React/Vue SPA · 暗色模式 · 移动端</p></div>
-    <div class="card"><div class="icon">&#x1F4E6;</div><h3>本地模型</h3><p>Ollama / Xinference 完全离线运行</p></div>
-    <div class="card"><div class="icon">&#x1F4D0;</div><h3>文档对比分析</h3><p>多文档交叉检索 · 知识图谱</p></div>
-    <div class="card"><div class="icon">&#x1F4C4;</div><h3>更多格式</h3><p>EPUB · LaTeX · CAD 图纸</p></div>
+<!-- ====== 12: Q&A 应答预案 ====== -->
+<section class="slide" data-title="Q&A 应答预案">
+  <h2>常见问题 — 应答预案</h2>
+  <div class="grid2" style="font-size:13px;">
+    <div class="qa-card">
+      <div class="q">Q: 为什么用 DashScope 而不是 OpenAI？</div>
+      <div class="a">A: 国内可直接访问，不需要代理。API 兼容 OpenAI 格式，代码里改一行 base_url 就能切。DeepSeek-V3 中文能力实测很好，性价比高于 GPT-4。</div>
+    </div>
+    <div class="qa-card">
+      <div class="q">Q: Rerank 真的有用吗？会不会太慢？</div>
+      <div class="a">A: Cross-encoder 是业界公认的 RAG 质量提升性价比最高的单点改动。我们只对初检 12 条做 rerank，延迟增加 < 500ms，几乎无感。API 挂了会降级，不影响核心功能。</div>
+    </div>
+    <div class="qa-card">
+      <div class="q">Q: 能处理多大的文件？能处理多少文件？</div>
+      <div class="a">A: 单文件 32MB 上限。ChromaDB 嵌入式向量库单机轻松支持几十万条 chunk。实际测试 300 页 PDF 正常处理。</div>
+    </div>
+    <div class="qa-card">
+      <div class="q">Q: 安全性怎么保证？</div>
+      <div class="a">A: 8 层防护：文件大小 → 频率限制 → Token 认证 → CSP 安全头 → 文件名净化 → XSS 零注入架构 → 日志脱敏 → 127.0.0.1 本地绑定。5 轮审查全部通过。</div>
+    </div>
+    <div class="qa-card">
+      <div class="q">Q: 如果不用 DashScope 了，能换其他模型吗？</div>
+      <div class="a">A: 可以。LLM 和 Embedding 都通过 LangChain 抽象，换模型只改 config.py 两行。未来计划支持 Ollama 本地模型，完全离线运行。</div>
+    </div>
+    <div class="qa-card">
+      <div class="q">Q: 为什么要做状态持久化和线程安全？</div>
+      <div class="a">A: 实际踩坑——Python import 引用陷阱导致重启后 processed_files 为空。改为 Class 封装 + in-place mutation + threading.Lock 彻底解决，并发安全也有保障。</div>
+    </div>
   </div>
 </section>
 
-</div><!-- /slides -->
+</div><!-- /stage -->
 
-<!-- Navigation -->
-<div class="nav">
-  <button id="prevBtn" onclick="goSlide(-1)">&#x2039;</button>
-  <span class="counter"><span id="currentNum">1</span> / <span id="totalNum"></span></span>
-  <button id="nextBtn" onclick="goSlide(1)">&#x203A;</button>
+<!-- Speaker Notes Panel -->
+<div class="notes-panel" id="notesPanel">
+  <span class="label">&#x1F399; 讲稿</span>
+  <span class="content" id="notesContent"></span>
+  <span class="time-badge" id="timeBadge"></span>
 </div>
 
+<!-- Bottom bar -->
+<div class="bar">
+  <button onclick="goSlide(-1)" title="上一页 ←">&#x25C0; 上一页</button>
+  <span class="counter"><span id="cur">1</span> / <span id="tot"></span></span>
+  <button onclick="goSlide(1)" title="下一页 →">下一页 &#x25B6;</button>
+  <span style="margin:0 8px;color:var(--border);">|</span>
+  <button onclick="goSlide('home')" title="回到封面 Home">&#x2302; 封面</button>
+  <button onclick="goSlide('demo')" title="跳到演示流程">&#x25B6; 演示</button>
+  <button onclick="goSlide('qa')" title="跳到 Q&A">&#x2753; Q&A</button>
+  <span style="margin-left:auto;font-size:12px;color:var(--text2);">&#x2190; &#x2192; 键翻页 &middot; Home/End 跳转</span>
+</div>
+
+<div class="progress" id="progress"></div>
+
 <script>
+// ── Speaker notes (one per slide) ──
+const notes = [
+  // Slide 0: Cover
+  "<span class='say'>各位老师好，</span>我做的项目是<b>文档智能分析系统</b>。<br>简单说就是：<span class='say'>上传文档，用自然语言提问，AI 基于文档内容回答。</span><br>用到的核心技术是 RAG——检索增强生成。代码量 2270 行 Python + 780 行前端，46 项测试全部通过，经过 5 轮代码审查。",
+  "&#x23F1; 1 min",
+  // Slide 1: 是什么
+  "<span class='say'>一句话说清楚：用户扔一个 PDF 或 Word 进来，直接用中文问'这份文件里关于XX怎么说'，AI 从文档里找答案。</span><br>和直接传文件给 ChatGPT 的区别是：<span class='hi'>可以私有部署、不依赖外部服务、支持海量文档、加了 Rerank 精排回答更准。</span>",
+  "&#x23F1; 1.5 min",
+  // Slide 2: Architecture
+  "<span class='say'>架构分五层。</span>最上是前端单页面，中间是 Flask 后端的<b>三层分离</b>——路由、中间件、状态管理各自独立。下面是五个业务模块，再往下是 DashScope API 和 ChromaDB。每一层只做自己的事，<span class='hi'>可独立测试、可单独替换。</span>",
+  "&#x23F1; 1 min",
+  // Slide 3: PDF OCR
+  "<span class='say'>这是我个人觉得最有意思的技术点。</span>PDF 看起来是文字，实际上可能是扫描图片。<br>我的处理策略是<b>三级降级</b>：先试 PyPDF 读文本层，读不到就用 PyMuPDF 渲染引擎，再读不到就逐页渲染成图片送给 qwen-vl-max 做 OCR 识别。<br><span class='hi'>三种 PDF 都能处理，而且 OCR 用的是云端方案，不需要装 2GB 的本地模型</span>——在 Python 3.13 + Windows 下本地 OCR 兼容性很差，这个选择是有实际原因的。",
+  "&#x23F1; 1.5 min",
+  // Slide 4: Rerank
+  "<span class='say'>Rerank 是检索质量的核心提升。</span><br>用向量检索的时候，query 和 doc 是分开编码的——就像两个人分别看问题和文档，再对答案。Cross-encoder 是把问题和文档<b>拼在一起</b>，用全注意力机制逐对精算相关性。<br><span class='hi'>初检 12 条候选，Rerank 精选 4 条喂给 LLM。</span>实际测试下来，相关文档的排序准确率明显提升。而且 <span class='hi2'>API 挂了会自动降级</span>，前端会出现黄色提示告诉用户。",
+  "&#x23F1; 1.5 min",
+  // Slide 5: 架构演进
+  "<span class='say'>工程方面做了大量的重构和打磨。</span><br>最早的 app.py 是 330 行的巨石，所有东西塞在一起。经过 5 轮审查和重构，拆成了 5 个独立文件。状态管理从模块级全局变量改为 <span class='hi'>KnowledgeBase Class + threading.Lock 线程安全</span>。<br>踩过一个实际的坑——Python import 引用陷阱导致重启后数据丢失，改用 in-place mutation 解决了。这些都是<span class='hi'>写生产级代码才会遇到的问题</span>。",
+  "&#x23F1; 1.5 min",
+  // Slide 6: Security
+  "<span class='say'>安全方面做了 8 层防护。</span>从最外层的文件大小限制，到频率限制、Token 认证、安全响应头、输入净化、XSS 防护、日志脱敏，一直到部署层的本地绑定。<br>重点说一下<span class='hi'>零 XSS 架构</span>——前端全局禁用 innerHTML，只用 textContent 和 DOM API。不是靠程序员记得转义，而是<span class='hi'>从设计层面就杜绝了注入可能</span>。",
+  "&#x23F1; 1 min",
+  // Slide 7: Frontend
+  "<span class='say'>前端虽然是原生写的，但该有的体验都有。</span><br>拖拽上传带进度条、聊天记录 localStorage 持久化刷新不丢、流式生成可以停止、Rerank 降级有提示。<br>核心原则是：<span class='hi2'>不能让用户困惑</span>——出了问题要知道发生了什么。",
+  "&#x23F1; 1 min",
+  // Slide 8: Testing
+  "<span class='say'>测试和代码质量。</span>46 项 pytest 用例，text_processor 模块 100% 覆盖，state_manager 有线程安全并发测试。经过 5 轮代码审查，从安全到架构到细节，<span class='hi2'>目前零 CRITICAL 零 HIGH。</span>",
+  "&#x23F1; 1 min",
+  // Slide 9: Innovation
+  "<span class='say'>六个核心创新点：</span>PDF 三级 OCR、Cross-Encoder Rerank 加降级通知、线程安全 Class 封装、Pre-flight 三阶段检索架构、三层分离设计、46 项测试覆盖。<br>每个点背后都有实际遇到的问题驱动——比如云端 OCR 是因为 Windows 下本地方案兼容性差，Rerank 降级是因为 API 确实可能挂。",
+  "&#x23F1; 1.5 min",
+  // Slide 10: Demo
+  "<span class='say'>接下来我演示一下实际效果。</span><br><span class='do'>按左边步骤操作：</span><br>1. 打开页面 → 2. 拖 PDF 上传 → 3. 提问 → 4. 重启恢复 → 5. 删除 → 6. 停止生成 → 7. 扫描版 OCR → 8. 其他格式。<br><span class='say'>每个步骤都有对应的解说词，照着念就行。</span>",
+  "&#x23F1; 3-5 min",
+  // Slide 11: Tech Stack
+  "<span class='say'>技术栈一览。</span>核心依赖是 LangChain + ChromaDB + DashScope。DeepSeek-V3 做主模型，text-embedding-v2 做嵌入，gte-rerank 做重排，qwen-vl-max 做 OCR。<br><span class='hi'>门槛很低——一个 pip install 就能跑起来。</span>",
+  "&#x23F1; 0.5 min",
+  // Slide 12: Q&A
+  "<span class='say'>我准备了 6 个最可能被问到的问题和应答。</span><br>如果被问到没准备的问题：<span class='say'>'这是一个很好的问题，目前项目在这方面是……未来计划……'</span><br>关键是：<span class='hi2'>不慌、不编、把问题引到你熟悉的领域。</span>",
+  "&#x23F1; 视情况",
+];
+
 let idx = 0;
 const slides = document.querySelectorAll('.slide');
 const total = slides.length;
-document.getElementById('totalNum').textContent = total;
 
-function goSlide(dir) {
-  slides[idx].classList.remove('active');
-  idx = Math.max(0, Math.min(total-1, idx + dir));
-  slides[idx].classList.add('active');
-  document.getElementById('currentNum').textContent = idx + 1;
-  document.getElementById('progress').style.width = ((idx+1)/total*100) + '%';
+document.getElementById('tot').textContent = total;
+
+function getSlideIndex(target) {
+  if (target === 'home') return 0;
+  if (target === 'demo') return 10;
+  if (target === 'qa') return 12;
+  return -1;
 }
 
+function goSlide(dir) {
+  if (typeof dir === 'string') {
+    const t = getSlideIndex(dir);
+    if (t >= 0) { idx = t; }
+    else return;
+  } else {
+    idx = Math.max(0, Math.min(total - 1, idx + dir));
+  }
+
+  document.querySelectorAll('.slide.active').forEach(s => s.classList.remove('active'));
+  slides[idx].classList.add('active');
+
+  document.getElementById('cur').textContent = idx + 1;
+  document.getElementById('progress').style.width = ((idx + 1) / total * 100) + '%';
+
+  // Update speaker notes
+  const n = notes[idx * 2];
+  const t = notes[idx * 2 + 1] || '';
+  document.getElementById('notesContent').innerHTML = n;
+  document.getElementById('timeBadge').innerHTML = t;
+  document.getElementById('notesPanel').scrollTop = 0;
+}
+
+// Keyboard
 document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
   if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); goSlide(1); }
   if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')                   { e.preventDefault(); goSlide(-1); }
-  if (e.key === 'Home') { e.preventDefault(); goSlide(-idx); }
-  if (e.key === 'End')  { e.preventDefault(); goSlide(total-1-idx); }
+  if (e.key === 'Home') { e.preventDefault(); goSlide('home'); }
+  if (e.key === 'End')  { e.preventDefault(); goSlide(total - 1 - idx); }
 });
 
 // Touch swipe
@@ -510,7 +614,15 @@ document.addEventListener('touchend', e => {
   touchX = 0;
 });
 
-document.getElementById('progress').style.width = (1/total*100) + '%';
+// Click on slide edges to navigate
+document.getElementById('stage').addEventListener('click', e => {
+  const rect = e.currentTarget.getBoundingClientRect();
+  if (e.clientX - rect.left < rect.width * 0.15) goSlide(-1);
+  if (e.clientX - rect.left > rect.width * 0.85) goSlide(1);
+});
+
+// Init
+goSlide(0);
 </script>
 </body>
 </html>
