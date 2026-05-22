@@ -35,6 +35,7 @@ def load_vectorstore() -> Chroma | None:
 
 
 def get_retriever(vectorstore: Chroma, k: int | None = None):
+    """Return a retriever with the given k (defaults to RETRIEVAL_K from config)."""
     if k is None:
         k = RETRIEVAL_K
     return vectorstore.as_retriever(
@@ -43,5 +44,5 @@ def get_retriever(vectorstore: Chroma, k: int | None = None):
     )
 
 
-def add_documents(vectorstore: Chroma, docs: List[Document]):
+def add_documents(vectorstore: Chroma, docs: List[Document]) -> None:
     vectorstore.add_documents(docs)

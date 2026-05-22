@@ -11,7 +11,7 @@ from config import (
     RETRIEVAL_K_PRE_RERANK,
 )
 from document_loader import load_file
-from text_processor import process_documents
+from text_processor import ProcessResult, process_documents
 from vector_store import (
     create_vectorstore,
     load_vectorstore,
@@ -69,7 +69,7 @@ class KnowledgeBase:
 
     # ── retriever access (cached, thread-safe) ──────────────────
 
-    def get_retriever(self):
+    def get_retriever(self) -> "Chroma | None":
         """Return a cached retriever for the current vectorstore, or None."""
         with self._lock:
             if self._retriever is not None:
@@ -81,7 +81,7 @@ class KnowledgeBase:
 
     # ── initialisation ──────────────────────────────────────────
 
-    def init_vectorstore(self):
+    def init_vectorstore(self) -> None:
         """Load existing vectorstore and knowledge state on startup."""
         with self._lock:
             try:
@@ -91,14 +91,14 @@ class KnowledgeBase:
                     self._load_knowledge_state_locked()
                 else:
                     logger.info("向量数据库为空，等待文件上传")
-            except Exception as e:
+            except (OSError, RuntimeError) as e:
                 logger.warning(f"加载向量数据库失败: {e}")
                 self._vectorstore = None
             self._retriever = None
 
     # ── file processing ─────────────────────────────────────────
 
-    def process_and_index_file(self, save_path: Path, original_filename: str):
+    def process_and_index_file(self, save_path: Path, original_filename: str) -> ProcessResult:
         """Load a file, create chunks, and index into the vectorstore.
 
         Returns the ProcessResult for the caller to extract metadata.
@@ -126,18 +126,18 @@ class KnowledgeBase:
             else:
                 add_documents(self._vectorstore, result.splits)
                 logger.info("已将文档添加到现有向量数据库")
-            self._retriever = None  # invalidate cache
+            self._retriever = None
 
         return result
 
-    def add_file_record(self, file_id: str, record: dict):
+    def add_file_record(self, file_id: str, record: dict) -> None:
         """Register a file record and persist to disk."""
         with self._lock:
             self._processed_files[file_id] = record
             data = list(self._processed_files.values())
         self._write_state_file(data)
 
-    def remove_file(self, file_id: str):
+    def remove_file(self, file_id: str) -> dict | None:
         """Remove a file record and its vector entries."""
         with self._lock:
             info = self._processed_files.pop(file_id, None)
@@ -145,35 +145,35 @@ class KnowledgeBase:
                 return None
             fname = info.get("filename", "")
             if fname and self._vectorstore:
-                safe_name = sanitize_filename(fname)
+                safe_name = f"{file_id}_{sanitize_filename(fname)}"
                 try:
                     self._vectorstore.delete(where={"filename": safe_name})
                 except Exception:
                     logger.warning(f"从向量库删除文件失败: {fname}", exc_info=True)
-            self._retriever = None  # invalidate cache
+            self._retriever = None
             data = list(self._processed_files.values())
         self._write_state_file(data)
         return info
 
     # ── persistence ─────────────────────────────────────────────
 
-    def _write_state_file(self, data: list[dict]):
+    def _write_state_file(self, data: list[dict]) -> None:
         """Persist file records to disk. I/O is outside the lock."""
         try:
             KNOWLEDGE_STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
             with open(KNOWLEDGE_STATE_FILE, "w", encoding="utf-8") as f:
                 json.dump(data, f, ensure_ascii=False, indent=2)
-        except Exception as e:
+        except OSError as e:
             logger.warning(f"保存知识库状态失败: {e}")
 
-    def _load_knowledge_state_locked(self):
+    def _load_knowledge_state_locked(self) -> None:
         """Must be called with _lock held."""
         if not KNOWLEDGE_STATE_FILE.exists():
             return
         try:
             with open(KNOWLEDGE_STATE_FILE, "r", encoding="utf-8") as f:
                 records = json.load(f)
-        except Exception as e:
+        except (OSError, json.JSONDecodeError) as e:
             logger.warning(f"读取知识库状态文件失败: {e}")
             return
 

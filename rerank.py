@@ -1,5 +1,6 @@
 import json
 import logging
+import urllib.error
 import urllib.request
 from dataclasses import dataclass
 from typing import List
@@ -64,6 +65,6 @@ def rerank_documents(query: str, docs: List[Document], top_k: int = RETRIEVAL_K)
         reranked = [docs[i] for i in ranked_indices if i < len(docs)]
         return RerankResult(docs=reranked, degraded=False)
 
-    except Exception as e:
+    except (urllib.error.URLError, json.JSONDecodeError, OSError) as e:
         logger.warning(f"Rerank API 调用失败，降级为原始顺序: {e}")
         return RerankResult(docs=docs[:top_k], degraded=True)

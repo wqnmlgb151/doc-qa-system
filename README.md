@@ -25,7 +25,7 @@ python app.py
 | Rerank 重排序 | Cross-encoder 精排，初检 12 → 精选 4，检索质量最高单点改进 |
 | 流式回答 | SSE 逐 token 渲染，支持取消生成 |
 | 知识库持久化 | 重启自动恢复，无需重新上传 |
-| 安全防护 | 限流 / 认证 / CSP / XSS 防护 / 文件净化 |
+| 安全防护 | 8层防护：限流 / 认证 / HSTS / CSP / XSS 防护 / 文件净化 / 日志脱敏 |
 
 ## API
 
@@ -79,7 +79,42 @@ pytest tests/ --cov=. --cov-report=term-missing
 ## 环境要求
 
 - Python 3.10+
-- [阿里云百炼](https://bailian.console.aliyun.com/) API Key
+- [阿里云百炼](https://bailian.console.aliyun.com/) API Key（云端模式）**或** Ollama 等本地模型服务（离线模式）
+
+## 使用本地模型（可选）
+
+系统支持接入 **Ollama / Xinference / vLLM / LM Studio** 等任何 OpenAI 兼容接口的本地模型服务。
+
+### Ollama 方案（推荐）
+
+```bash
+# 1. 安装 Ollama → https://ollama.com/download/windows
+# 2. 拉取模型
+ollama pull qwen2.5:14b              # LLM 问答（中文优秀）
+ollama pull nomic-embed-text         # 文本嵌入
+
+# 3. 配置 .env
+DASHSCOPE_API_KEY=ollama
+LLM_MODEL=qwen2.5:14b
+EMBEDDING_MODEL=nomic-embed-text
+BASE_URL=http://localhost:11434/v1
+
+# 4. 启动
+python app.py
+```
+
+### 其他本地服务
+
+任何提供 OpenAI 兼容 `/v1/chat/completions` + `/v1/embeddings` 端点的服务均可接入：
+
+| 服务 | 默认地址 | 配置方式 |
+|------|---------|---------|
+| Xinference | `http://localhost:9997/v1` | 同上，修改 BASE_URL / LLM_MODEL |
+| vLLM | `http://localhost:8000/v1` | 同上 |
+| LM Studio | `http://localhost:1234/v1` | 同上 |
+
+> Rerank 和 OCR 在纯本地模式下会自动降级（Rerank 降级→向量排序；OCR 不可用→仅支持文字型文档）。
+> 详见 [答辩文档.md](./答辩文档.md) 第十章。
 
 ## 许可证
 

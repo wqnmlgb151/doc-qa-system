@@ -450,10 +450,10 @@ td { padding:8px 14px; border-bottom:1px solid var(--border); color:var(--text2)
   <table>
     <tr><th>层级</th><th>选型</th><th>为什么选它</th></tr>
     <tr><td>Web 框架</td><td>Flask 3.x</td><td>轻量，无过度抽象，适合 API 服务</td></tr>
-    <tr><td>LLM</td><td>DeepSeek-V3（DashScope）</td><td>中文能力强，OpenAI 兼容接口，切换模型零成本</td></tr>
-    <tr><td>嵌入模型</td><td>DashScope text-embedding-v2</td><td>与 LLM 同平台低延迟，1024 维中文优化</td></tr>
+    <tr><td>LLM</td><td>DeepSeek-V3（DashScope）<br><small style="color:var(--green);">+ 本地: Ollama qwen2.5</small></td><td>中文能力强，OpenAI 兼容接口，可切换本地模型离线运行</td></tr>
+    <tr><td>嵌入模型</td><td>DashScope text-embedding-v2<br><small style="color:var(--green);">+ 本地: nomic-embed-text</small></td><td>与 LLM 同平台低延迟，本地嵌入零网络依赖</td></tr>
     <tr><td>OCR</td><td>DashScope qwen-vl-max</td><td>云端多模态，零本地模型文件，中文准确率高</td></tr>
-    <tr><td>Rerank</td><td>DashScope gte-rerank</td><td>Cross-encoder 精排，检索质量核心提升</td></tr>
+    <tr><td>Rerank</td><td>DashScope gte-rerank</td><td>Cross-encoder 精排，检索质量核心提升，API 故障自动降级</td></tr>
     <tr><td>向量数据库</td><td>ChromaDB</td><td>嵌入式、持久化、增量追加，不需要单独部署服务</td></tr>
     <tr><td>LLM 框架</td><td>LangChain 0.3+</td><td>LCEL 声明式链式调用，模块可替换</td></tr>
     <tr><td>前端</td><td>原生 HTML/CSS/JS</td><td>零框架依赖，加载即用，不依赖 npm</td></tr>
@@ -483,7 +483,7 @@ td { padding:8px 14px; border-bottom:1px solid var(--border); color:var(--text2)
     </div>
     <div class="qa-card">
       <div class="q">Q: 如果不用 DashScope 了，能换其他模型吗？</div>
-      <div class="a">A: 可以。LLM 和 Embedding 都通过 LangChain 抽象，换模型只改 config.py 两行。未来计划支持 Ollama 本地模型，完全离线运行。</div>
+      <div class="a">A: 可以。LLM 和 Embedding 都通过 OpenAI 兼容接口调用，换模型只改 .env 两行。已支持 Ollama / Xinference / vLLM 等本地模型，可完全离线运行。详见答辩文档第十章。</div>
     </div>
     <div class="qa-card">
       <div class="q">Q: 为什么要做状态持久化和线程安全？</div>

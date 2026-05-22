@@ -53,7 +53,7 @@ class DocumentParseError(DocumentLoaderError):
 _OCR_CLIENT = None
 
 
-def _get_ocr_client():
+def _get_ocr_client() -> "OpenAI":
     global _OCR_CLIENT
     if _OCR_CLIENT is None:
         from openai import OpenAI
@@ -83,7 +83,6 @@ def _ocr_image(image_bytes: bytes) -> str:
 
 
 def load_pdf(file_path: str) -> List[Document]:
-    # 第1步：PyPDF 提取文本
     loader = PyPDFLoader(file_path)
     docs = loader.load()
     total_text = "".join(d.page_content for d in docs).strip()
@@ -95,7 +94,6 @@ def load_pdf(file_path: str) -> List[Document]:
     import fitz
     fitz_doc = fitz.open(file_path)
     try:
-        # 第2步：PyMuPDF 提取文本
         pages_text = []
         for i in range(fitz_doc.page_count):
             text = fitz_doc[i].get_text().strip()
@@ -108,7 +106,6 @@ def load_pdf(file_path: str) -> List[Document]:
 
         logger.info("PyMuPDF 也未提取到文本，启动 OCR 识别（可能较慢）...")
 
-        # 第3步：OCR 识别扫描版
         ocr_pages = []
         for i in range(fitz_doc.page_count):
             logger.info(f"  OCR 处理第 {i+1}/{fitz_doc.page_count} 页...")
@@ -139,18 +136,14 @@ def load_image(file_path: str) -> List[Document]:
 
 
 def load_doc(file_path: str) -> List[Document]:
-    """处理旧版 .doc 格式 - Windows 上通过 win32com 转换"""
+    """处理旧版 .doc 格式 — 先尝试 python-docx 读取，再尝试 antiword"""
     import subprocess
-    import tempfile
 
     # 尝试用 python-docx 打开（部分 .doc 实际是 docx 格式）
     try:
-        from docx import Document as DocxDocument
-        doc = DocxDocument(file_path)
-        full_text = [para.text for para in doc.paragraphs if para.text.strip()]
-        if full_text:
-            text = "\n\n".join(full_text)
-            return _make_single_doc(text, file_path)
+        docs = load_docx(file_path)
+        if docs and docs[0].page_content.strip():
+            return docs
     except Exception:
         pass
 

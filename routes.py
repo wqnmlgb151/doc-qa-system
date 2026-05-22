@@ -1,5 +1,6 @@
 import json
 import logging
+import re
 import uuid
 from pathlib import Path
 
@@ -131,7 +132,7 @@ def chat():
 
     # ── Phase 2: LLM generation (streaming) ──
     chain = create_chain_from_docs(rerank_result.docs, streaming=True)
-    stream_id = uuid.uuid4().hex[:8]
+    stream_id = uuid.uuid4().hex
     cancel_event = threading.Event()
     _active_streams[stream_id] = cancel_event
 
@@ -174,6 +175,8 @@ def chat():
 
 @api.route("/api/stream/<stream_id>/cancel", methods=["POST"])
 def cancel_stream_route(stream_id: str):
+    if not check_rate_limit("cancel"):
+        return jsonify({"error": "请求过于频繁，请稍后再试"}), 429
     _cancel_stream(stream_id)
     return jsonify({"success": True})
 
@@ -186,6 +189,8 @@ def list_files():
 @api.route("/api/files/<file_id>", methods=["DELETE"])
 @require_auth
 def delete_file(file_id: str):
+    if not re.fullmatch(r"[0-9a-fA-F]{8}", file_id):
+        return jsonify({"error": "无效的文件 ID"}), 400
     info = kb.remove_file(file_id)
     if info is None:
         return jsonify({"error": "文件不存在"}), 404
@@ -203,14 +208,13 @@ def delete_file(file_id: str):
 def _rm_glob(directory: Path, pattern: str):
     for f in directory.glob(pattern):
         try:
-            f.unlink()
+            f.unlink(missing_ok=True)
         except OSError:
-            pass
+            logger.warning(f"删除文件失败: {f}", exc_info=True)
 
 
 def _cleanup_upload(save_path: Path):
     try:
-        if save_path.exists():
-            save_path.unlink()
+        save_path.unlink(missing_ok=True)
     except OSError:
-        pass
+        logger.warning(f"清理上传文件失败: {save_path}", exc_info=True)

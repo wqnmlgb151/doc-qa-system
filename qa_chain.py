@@ -6,6 +6,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.documents import Document
+from langchain_core.runnables import Runnable
 
 from config import DASHSCOPE_API_KEY, BASE_URL, LLM_MODEL
 
@@ -34,7 +35,7 @@ def _get_streaming_model() -> ChatOpenAI:
     )
 
 
-def create_chain_from_docs(docs: List[Document], *, streaming: bool = False):
+def create_chain_from_docs(docs: List[Document], *, streaming: bool = False) -> Runnable:
     """Create a RAG chain using pre-retrieved (and optionally pre-reranked) documents.
 
     Retrieval and reranking are handled by the caller so the route can

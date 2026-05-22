@@ -1,20 +1,31 @@
 import os
 import re
+import threading
 import time
 import unicodedata
 from collections import defaultdict
 from functools import wraps
+from typing import Callable
 
 from flask import request, jsonify
 
 API_TOKEN = os.environ.get("API_TOKEN", "")
 
+if not API_TOKEN:
+    import logging
+    logging.getLogger(__name__).warning(
+        "API_TOKEN 未设置！上传和删除等受保护接口将在无认证状态下运行。"
+        "如需启用认证，请在 .env 中设置 API_TOKEN。"
+    )
+
 _rate_limits: dict[str, tuple[int, int]] = {
     "upload": (10, 3600),
     "chat": (30, 60),
+    "cancel": (60, 60),
 }
 
 _requests_store: dict[str, list[float]] = defaultdict(list)
+_requests_lock = threading.Lock()
 _store_check_count: int = 0
 
 
@@ -36,25 +47,27 @@ def check_rate_limit(endpoint: str) -> bool:
     now = time.time()
     key = f"{request.remote_addr}:{endpoint}"
 
-    # Prune current key
-    _requests_store[key] = [t for t in _requests_store[key] if now - t < window]
-    if not _requests_store[key]:
-        del _requests_store[key]
+    with _requests_lock:
+        # Prune current key
+        _requests_store[key] = [t for t in _requests_store[key] if now - t < window]
+        if not _requests_store[key]:
+            del _requests_store[key]
 
-    # Periodic full sweep: evict all stale keys every ~1000 checks
-    _store_check_count += 1
-    if _store_check_count % 1000 == 0:
-        stale = [k for k, ts in _requests_store.items() if not ts]
-        for k in stale:
-            del _requests_store[k]
+        # Periodic full sweep: evict stale keys every ~1000 checks
+        _store_check_count = (_store_check_count + 1) % 1000
+        if _store_check_count == 0:
+            stale = [k for k, ts in _requests_store.items()
+                     if not ts or all(now - t >= window for t in ts)]
+            for k in stale:
+                del _requests_store[k]
 
-    if len(_requests_store.get(key, [])) >= max_req:
-        return False
-    _requests_store[key].append(now)
-    return True
+        if len(_requests_store.get(key, [])) >= max_req:
+            return False
+        _requests_store[key].append(now)
+        return True
 
 
-def require_auth(f):
+def require_auth(f: "Callable") -> "Callable":
     @wraps(f)
     def decorated(*args, **kwargs):
         if not API_TOKEN:
@@ -66,12 +79,18 @@ def require_auth(f):
     return decorated
 
 
-def register_security_headers(app):
+def register_security_headers(app: "Flask") -> None:
     @app.after_request
     def add_security_headers(response):
+        response.headers["Strict-Transport-Security"] = (
+            "max-age=31536000; includeSubDomains; preload"
+        )
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        response.headers["Permissions-Policy"] = (
+            "camera=(), microphone=(), geolocation=()"
+        )
         response.headers["Content-Security-Policy"] = (
             "default-src 'self'; "
             "script-src 'self' 'unsafe-inline'; "

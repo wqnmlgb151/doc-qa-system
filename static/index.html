@@ -371,7 +371,7 @@ const chatInput    = document.getElementById('chatInput');
 const sendBtn      = document.getElementById('sendBtn');
 const stopBtn      = document.getElementById('stopBtn');
 const statusBadge  = document.getElementById('statusBadge');
-const welcomeState = document.getElementById('welcomeState');
+
 const uploadProg   = document.getElementById('uploadProgress');
 
 let isStreaming     = false;
@@ -425,7 +425,8 @@ function scrollToBottom() {
 }
 
 function hideWelcome() {
-  welcomeState?.classList.add('hidden');
+  const el = document.getElementById('welcomeState');
+  if (el) el.classList.add('hidden');
 }
 
 function appendMessageEl(className, text) {
@@ -725,13 +726,8 @@ async function sendMessage() {
       }
     }
   } catch (e) {
-    if (e.name === 'AbortError') {
-      contentEl.textContent = fullText || '(已停止生成)';
-      addMessageToStore('assistant', fullText || '(已停止生成)');
-    } else {
-      contentEl.textContent = '连接错误: ' + e.message;
-      addMessageToStore('assistant', contentEl.textContent);
-    }
+    contentEl.textContent = '连接错误: ' + e.message;
+    addMessageToStore('assistant', contentEl.textContent);
   } finally {
     assistantEl.classList.remove('streaming');
     setStreamingUI(false);

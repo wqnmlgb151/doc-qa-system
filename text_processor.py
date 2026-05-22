@@ -6,6 +6,8 @@ from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from config import JSON_DIR, CHUNK_SIZE, CHUNK_OVERLAP
 
+_splitter = RecursiveCharacterTextSplitter(chunk_size=CHUNK_SIZE, chunk_overlap=CHUNK_OVERLAP)
+
 
 @dataclass(frozen=True)
 class ProcessResult:
@@ -17,11 +19,7 @@ class ProcessResult:
 
 
 def split_documents(docs: List[Document]) -> List[Document]:
-    text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=CHUNK_SIZE,
-        chunk_overlap=CHUNK_OVERLAP,
-    )
-    return text_splitter.split_documents(docs)
+    return _splitter.split_documents(docs)
 
 
 def docs_to_json(docs: List[Document]) -> List[dict]:
