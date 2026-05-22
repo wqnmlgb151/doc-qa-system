@@ -1,11 +1,16 @@
+from functools import lru_cache
+from typing import List
+
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
+from langchain_core.documents import Document
+
 from config import DASHSCOPE_API_KEY, BASE_URL, LLM_MODEL
 
 
-def format_docs(docs) -> str:
+def format_docs(docs: List[Document]) -> str:
     return "\n\n".join(doc.page_content for doc in docs)
 
 
@@ -19,12 +24,27 @@ SYSTEM_PROMPT = (
 )
 
 
-def create_rag_chain(retriever, *, streaming=False):
-    model = ChatOpenAI(
+@lru_cache(maxsize=1)
+def _get_streaming_model() -> ChatOpenAI:
+    return ChatOpenAI(
         api_key=DASHSCOPE_API_KEY,
         base_url=BASE_URL,
         model=LLM_MODEL,
-        streaming=streaming,
+        streaming=True,
+    )
+
+
+def create_chain_from_docs(docs: List[Document], *, streaming: bool = False):
+    """Create a RAG chain using pre-retrieved (and optionally pre-reranked) documents.
+
+    Retrieval and reranking are handled by the caller so the route can
+    inject degradation warnings into the SSE stream before generation.
+    """
+    model = _get_streaming_model() if streaming else ChatOpenAI(
+        api_key=DASHSCOPE_API_KEY,
+        base_url=BASE_URL,
+        model=LLM_MODEL,
+        streaming=False,
     )
 
     prompt = ChatPromptTemplate.from_messages([
@@ -32,8 +52,11 @@ def create_rag_chain(retriever, *, streaming=False):
         ("human", "{input}"),
     ])
 
+    context_str = format_docs(docs)
+
     return (
-        {"context": retriever | format_docs, "input": RunnablePassthrough()}
+        RunnablePassthrough()
+        | (lambda q: {"context": context_str, "input": q})
         | prompt
         | model
         | StrOutputParser()

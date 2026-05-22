@@ -1,5 +1,4 @@
 import base64
-import os
 import logging
 from pathlib import Path
 from typing import List
@@ -7,6 +6,49 @@ from langchain_core.documents import Document
 from langchain_community.document_loaders import PyPDFLoader
 
 logger = logging.getLogger(__name__)
+
+
+def _make_single_doc(text: str, file_path: str) -> List[Document]:
+    return [Document(page_content=text, metadata={"source": file_path, "page": 0})]
+
+
+class DocumentLoaderError(Exception):
+    """Base exception for document loading failures with a user-facing message."""
+
+    def __init__(self, message: str, detail: str = ""):
+        super().__init__(message)
+        self.detail = detail
+
+
+class UnsupportedFileTypeError(DocumentLoaderError):
+    """File extension not in the supported types list."""
+
+    def __init__(self, ext: str):
+        from config import ALLOWED_EXTENSIONS
+        super().__init__(
+            f"不支持的文件类型: {ext}",
+            f"支持的类型: {', '.join(sorted(ALLOWED_EXTENSIONS))}",
+        )
+
+
+class EmptyDocumentError(DocumentLoaderError):
+    """Document has no extractable text."""
+
+    def __init__(self, detail: str = ""):
+        super().__init__(
+            "文档内容为空或无法提取有效文本。PDF 可能是扫描版（图片），请使用带有文字层的文档。",
+            detail,
+        )
+
+
+class DocumentParseError(DocumentLoaderError):
+    """Document format is unsupported or corrupted."""
+
+    def __init__(self, detail: str = ""):
+        super().__init__(
+            "无法解析文档，文件可能已损坏或格式不正确。",
+            detail,
+        )
 
 _OCR_CLIENT = None
 
@@ -62,8 +104,7 @@ def load_pdf(file_path: str) -> List[Document]:
         fitz_text = "\n\n".join(pages_text).strip()
 
         if fitz_text:
-            metadata = {"source": file_path, "page": 0}
-            return [Document(page_content=fitz_text, metadata=metadata)]
+            return _make_single_doc(fitz_text, file_path)
 
         logger.info("PyMuPDF 也未提取到文本，启动 OCR 识别（可能较慢）...")
 
@@ -80,10 +121,9 @@ def load_pdf(file_path: str) -> List[Document]:
 
         ocr_text = "\n\n".join(ocr_pages).strip()
         if not ocr_text:
-            raise ValueError("OCR 未能识别出文字，文档可能为纯图片或手写内容。")
+            raise EmptyDocumentError("OCR 未能识别出文字，文档可能为纯图片或手写内容。")
 
-        metadata = {"source": file_path, "page": 0}
-        return [Document(page_content=ocr_text, metadata=metadata)]
+        return _make_single_doc(ocr_text, file_path)
     finally:
         fitz_doc.close()
 
@@ -94,9 +134,8 @@ def load_image(file_path: str) -> List[Document]:
         img_bytes = f.read()
     text = _ocr_image(img_bytes)
     if not text.strip():
-        raise ValueError("OCR 未能从图片中识别出文字。")
-    metadata = {"source": file_path, "page": 0}
-    return [Document(page_content=text, metadata=metadata)]
+        raise EmptyDocumentError("OCR 未能从图片中识别出文字。")
+    return _make_single_doc(text, file_path)
 
 
 def load_doc(file_path: str) -> List[Document]:
@@ -111,8 +150,7 @@ def load_doc(file_path: str) -> List[Document]:
         full_text = [para.text for para in doc.paragraphs if para.text.strip()]
         if full_text:
             text = "\n\n".join(full_text)
-            metadata = {"source": file_path, "page": 0}
-            return [Document(page_content=text, metadata=metadata)]
+            return _make_single_doc(text, file_path)
     except Exception:
         pass
 
@@ -122,12 +160,11 @@ def load_doc(file_path: str) -> List[Document]:
             ["antiword", file_path], capture_output=True, text=True, timeout=30
         )
         if result.returncode == 0 and result.stdout.strip():
-            metadata = {"source": file_path, "page": 0}
-            return [Document(page_content=result.stdout, metadata=metadata)]
+            return _make_single_doc(result.stdout, file_path)
     except (FileNotFoundError, subprocess.TimeoutExpired):
         pass
 
-    raise ValueError(
+    raise DocumentParseError(
         "无法解析 .doc 文件。请用 Word 打开后另存为 .docx 格式再上传。"
     )
 
@@ -137,8 +174,7 @@ def load_docx(file_path: str) -> List[Document]:
     doc = DocxDocument(file_path)
     full_text = [para.text for para in doc.paragraphs if para.text.strip()]
     text = "\n\n".join(full_text)
-    metadata = {"source": file_path, "page": 0}
-    return [Document(page_content=text, metadata=metadata)]
+    return _make_single_doc(text, file_path)
 
 
 def load_pptx(file_path: str) -> List[Document]:
@@ -153,8 +189,7 @@ def load_pptx(file_path: str) -> List[Document]:
         if texts:
             slides.append(f"--- 幻灯片 {i+1} ---\n" + "\n".join(texts))
     text = "\n\n".join(slides)
-    metadata = {"source": file_path, "page": 0}
-    return [Document(page_content=text, metadata=metadata)]
+    return _make_single_doc(text, file_path)
 
 
 def load_xlsx(file_path: str) -> List[Document]:
@@ -172,8 +207,7 @@ def load_xlsx(file_path: str) -> List[Document]:
             sheets_text.append(f"--- 工作表: {sheet_name} ---\n" + "\n".join(rows))
     wb.close()
     text = "\n\n".join(sheets_text)
-    metadata = {"source": file_path, "page": 0}
-    return [Document(page_content=text, metadata=metadata)]
+    return _make_single_doc(text, file_path)
 
 
 def load_html(file_path: str) -> List[Document]:
@@ -185,15 +219,13 @@ def load_html(file_path: str) -> List[Document]:
     text = soup.get_text(separator="\n")
     lines = [line.strip() for line in text.splitlines() if line.strip()]
     text = "\n".join(lines)
-    metadata = {"source": file_path, "page": 0}
-    return [Document(page_content=text, metadata=metadata)]
+    return _make_single_doc(text, file_path)
 
 
 def load_text(file_path: str) -> List[Document]:
     with open(file_path, "r", encoding="utf-8") as f:
         text = f.read()
-    metadata = {"source": file_path, "page": 0}
-    return [Document(page_content=text, metadata=metadata)]
+    return _make_single_doc(text, file_path)
 
 
 LOADERS = {
@@ -222,11 +254,11 @@ LOADERS = {
 def load_file(file_path: str) -> List[Document]:
     ext = Path(file_path).suffix.lower()
     if ext not in LOADERS:
-        raise ValueError(f"不支持的文件类型: {ext}，支持的类型: {set(LOADERS.keys())}")
+        raise UnsupportedFileTypeError(ext)
 
     loader = LOADERS[ext]
     docs = loader(file_path)
     for doc in docs:
-        doc.metadata["filename"] = os.path.basename(file_path)
+        doc.metadata["filename"] = Path(file_path).name
         doc.metadata["file_type"] = ext
     return docs

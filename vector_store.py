@@ -34,10 +34,12 @@ def load_vectorstore() -> Chroma | None:
     )
 
 
-def get_retriever(vectorstore: Chroma):
+def get_retriever(vectorstore: Chroma, k: int | None = None):
+    if k is None:
+        k = RETRIEVAL_K
     return vectorstore.as_retriever(
         search_type="similarity",
-        search_kwargs={"k": RETRIEVAL_K},
+        search_kwargs={"k": k},
     )
 
 

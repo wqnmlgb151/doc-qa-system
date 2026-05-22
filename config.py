@@ -26,6 +26,10 @@ CHUNK_OVERLAP = 300
 
 # 检索
 RETRIEVAL_K = 4
+RETRIEVAL_K_PRE_RERANK = 12  # 初检数量，之后经 rerank 精选至 RETRIEVAL_K
+
+# 问答
+MAX_QUESTION_LENGTH = 2000
 
 # 支持的文件类型
 ALLOWED_EXTENSIONS = {".pdf", ".doc", ".docx", ".pptx", ".xlsx", ".html", ".htm", ".png", ".jpg", ".jpeg", ".bmp", ".tiff", ".tif", ".txt", ".md", ".csv", ".json", ".xml", ".log"}

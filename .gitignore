@@ -8,6 +8,11 @@ __pycache__/
 .venv/
 venv/
 
+# Testing
+.coverage
+.pytest_cache/
+htmlcov/
+
 # Application data
 data/
 chroma_db/

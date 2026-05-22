@@ -56,7 +56,6 @@ body {
   color: var(--text-secondary);
 }
 
-/* Status Badge */
 .status-badge {
   display: inline-flex;
   align-items: center;
@@ -68,28 +67,13 @@ body {
   font-weight: 600;
 }
 
-.status-badge.ready {
-  background: #dcfce7;
-  color: var(--success);
-}
+.status-badge.ready  { background: #dcfce7; color: var(--success); }
+.status-badge.empty  { background: #fef3c7; color: var(--warning); }
 
-.status-badge.empty {
-  background: #fef3c7;
-  color: var(--warning);
-}
+.status-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
 
-.status-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: currentColor;
-}
-
-/* Upload Area */
-.upload-section {
-  padding: 20px;
-  border-bottom: 1px solid var(--border);
-}
+/* Upload */
+.upload-section { padding: 20px; border-bottom: 1px solid var(--border); }
 
 .upload-zone {
   border: 2px dashed var(--border);
@@ -99,6 +83,8 @@ body {
   cursor: pointer;
   transition: all .2s;
   background: #fafafa;
+  position: relative;
+  overflow: hidden;
 }
 
 .upload-zone:hover, .upload-zone.drag-over {
@@ -106,25 +92,38 @@ body {
   background: #eff6ff;
 }
 
-.upload-icon {
-  font-size: 36px;
-  margin-bottom: 8px;
-}
+.upload-zone .upload-icon  { font-size: 36px; margin-bottom: 8px; }
+.upload-zone .main-text   { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+.upload-zone .sub-text    { font-size: 12px; color: var(--text-secondary); }
+.upload-zone input[type="file"] { display: none; }
 
-.upload-zone .main-text {
-  font-size: 14px;
-  font-weight: 600;
-  margin-bottom: 4px;
-}
-
-.upload-zone .sub-text {
-  font-size: 12px;
-  color: var(--text-secondary);
-}
-
-.upload-zone input[type="file"] {
+/* Upload Progress Bar */
+.upload-progress {
   display: none;
+  margin-top: 12px;
+  background: #e5e7eb;
+  border-radius: 8px;
+  height: 6px;
+  overflow: hidden;
 }
+
+.upload-progress.active { display: block; }
+
+.upload-progress .bar {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 8px;
+  width: 0%;
+  transition: width .3s ease;
+}
+
+.upload-progress .label {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+.upload-zone.processing { pointer-events: none; opacity: .6; }
 
 /* File List */
 .file-list-section {
@@ -166,79 +165,61 @@ body {
 }
 
 .file-icon.pdf  { background: #fee2e2; color: #dc2626; }
-.file-icon.docx { background: #dbeafe; color: #2563eb; }
-.file-icon.txt  { background: #e5e7eb; color: #4b5563; }
+.file-icon.docx,.file-icon.doc { background: #dbeafe; color: #2563eb; }
+.file-icon.txt,.file-icon.md  { background: #e5e7eb; color: #4b5563; }
+.file-icon.xlsx,.file-icon.pptx { background: #dcfce7; color: #16a34a; }
+.file-icon.img  { background: #fae8ff; color: #a21caf; }
 
 .file-info { flex:1; min-width:0; }
 
 .file-info .name {
-  font-size: 13px;
-  font-weight: 500;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  font-size: 13px; font-weight: 500;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 
-.file-info .meta {
-  font-size: 11px;
-  color: var(--text-secondary);
-}
+.file-info .meta { font-size: 11px; color: var(--text-secondary); }
 
 .file-item .delete-btn {
-  background: none;
-  border: none;
-  color: #999;
-  cursor: pointer;
-  font-size: 18px;
-  padding: 2px 6px;
-  border-radius: 4px;
-  line-height: 1;
+  background: none; border: none; color: #999; cursor: pointer;
+  font-size: 18px; padding: 2px 6px; border-radius: 4px; line-height: 1;
 }
 
-.file-item .delete-btn:hover {
-  color: var(--danger);
-  background: #fef2f2;
-}
+.file-item .delete-btn:hover { color: var(--danger); background: #fef2f2; }
 
-.empty-files {
-  text-align: center;
-  color: #bbb;
-  font-size: 13px;
-  padding: 32px 0;
-}
+.empty-files { text-align: center; color: #bbb; font-size: 13px; padding: 32px 0; }
 
-/* Main Chat Area */
+/* Main Chat */
 .main {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  background: #fafafa;
+  flex: 1; display: flex; flex-direction: column;
+  overflow: hidden; background: #fafafa;
 }
 
 .chat-header {
-  padding: 16px 24px;
-  background: var(--surface);
+  padding: 12px 24px; background: var(--surface);
   border-bottom: 1px solid var(--border);
-  font-size: 15px;
-  font-weight: 600;
+  display: flex; align-items: center; justify-content: space-between;
 }
 
+.chat-header .title { font-size: 15px; font-weight: 600; }
+
+.chat-header .actions { display: flex; gap: 8px; }
+
+.chat-header .actions button {
+  padding: 5px 12px; border: 1px solid var(--border); border-radius: 6px;
+  background: var(--surface); cursor: pointer; font-size: 12px; color: var(--text-secondary);
+  transition: all .15s;
+}
+
+.chat-header .actions button:hover { background: #f0f0f0; color: var(--text); }
+
 .chat-messages {
-  flex: 1;
-  overflow-y: auto;
-  padding: 20px 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+  flex: 1; overflow-y: auto; padding: 20px 24px;
+  display: flex; flex-direction: column; gap: 16px;
 }
 
 .message {
-  max-width: 80%;
-  padding: 12px 16px;
-  border-radius: var(--radius);
-  font-size: 14px;
-  line-height: 1.65;
+  max-width: 80%; padding: 12px 16px; border-radius: var(--radius);
+  font-size: 14px; line-height: 1.65;
   animation: fadeIn .3s ease;
 }
 
@@ -249,100 +230,78 @@ body {
 
 .message.user {
   align-self: flex-end;
-  background: var(--accent);
-  color: white;
+  background: var(--accent); color: white;
   border-bottom-right-radius: 4px;
 }
 
 .message.assistant {
   align-self: flex-start;
-  background: var(--surface);
-  border: 1px solid var(--border);
+  background: var(--surface); border: 1px solid var(--border);
   border-bottom-left-radius: 4px;
 }
 
-.message.assistant .content {
-  white-space: pre-wrap;
-  word-break: break-word;
-}
-
+.message.assistant .content { white-space: pre-wrap; word-break: break-word; }
 .message.assistant.streaming { border-left: 3px solid var(--accent); }
 
 .message.system-msg {
   align-self: center;
-  background: #fef3c7;
-  color: #92400e;
-  font-size: 13px;
-  padding: 8px 16px;
-  border-radius: 20px;
-  max-width: 60%;
-  text-align: center;
+  background: #fef3c7; color: #92400e; font-size: 13px;
+  padding: 8px 16px; border-radius: 20px;
+  max-width: 70%; text-align: center;
+}
+
+.message.warning-msg {
+  align-self: center;
+  background: #fff7ed; color: #9a3412; font-size: 12px;
+  padding: 6px 14px; border-radius: 16px;
+  max-width: 70%; text-align: center;
+  border: 1px solid #fed7aa;
 }
 
 /* Chat Input */
 .chat-input-area {
-  padding: 16px 24px;
-  background: var(--surface);
+  padding: 16px 24px; background: var(--surface);
   border-top: 1px solid var(--border);
-  display: flex;
-  gap: 10px;
+  display: flex; gap: 10px;
 }
 
 .chat-input-area input {
-  flex: 1;
-  padding: 10px 16px;
-  border: 1px solid var(--border);
-  border-radius: 24px;
-  font-size: 14px;
-  outline: none;
-  transition: border-color .2s;
+  flex: 1; padding: 10px 16px;
+  border: 1px solid var(--border); border-radius: 24px;
+  font-size: 14px; outline: none; transition: border-color .2s;
 }
 
-.chat-input-area input:focus {
-  border-color: var(--accent);
-}
+.chat-input-area input:focus { border-color: var(--accent); }
 
 .chat-input-area button {
-  padding: 10px 20px;
-  background: var(--accent);
-  color: white;
-  border: none;
-  border-radius: 24px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background .2s;
-  white-space: nowrap;
+  padding: 10px 20px; background: var(--accent); color: white;
+  border: none; border-radius: 24px;
+  font-size: 14px; font-weight: 600; cursor: pointer;
+  transition: background .2s; white-space: nowrap;
 }
 
-.chat-input-area button:hover { background: var(--accent-hover); }
-.chat-input-area button:disabled { background: #a5b4fc; cursor: not-allowed; }
+.chat-input-area button:hover      { background: var(--accent-hover); }
+.chat-input-area button:disabled   { background: #a5b4fc; cursor: not-allowed; }
 
-/* Welcome / Empty State */
+.chat-input-area button.stop-btn {
+  background: var(--danger);
+  display: none;
+}
+
+.chat-input-area button.stop-btn.visible { display: inline-block; }
+
+/* Welcome */
 .welcome {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  color: var(--text-secondary);
-  text-align: center;
-  padding: 40px;
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  color: var(--text-secondary); text-align: center; padding: 40px;
 }
 
 .welcome .icon { font-size: 56px; margin-bottom: 16px; }
-
 .welcome h2 { font-size: 18px; color: #666; margin-bottom: 8px; }
-
-.welcome p { font-size: 13px; color: #999; max-width: 400px; }
+.welcome p  { font-size: 13px; color: #999; max-width: 400px; }
 
 .hidden { display: none !important; }
-
-/* Processing Overlay */
-.upload-zone.processing {
-  pointer-events: none;
-  opacity: .6;
-}
 </style>
 </head>
 <body>
@@ -359,28 +318,35 @@ body {
 
   <div class="upload-section">
     <div class="upload-zone" id="uploadZone">
-      <div class="upload-icon">📄</div>
+      <div class="upload-icon">&#x1F4C4;</div>
       <div class="main-text">点击上传或拖拽文件</div>
-      <div class="sub-text">支持 PDF(含扫描版OCR) / Word / PPT / Excel / HTML / 图片 / MD / CSV / JSON / TXT 等</div>
+      <div class="sub-text">支持 PDF(含扫描版OCR) / Word / PPT / Excel / HTML / 图片 / MD / CSV / JSON / TXT</div>
       <input type="file" id="fileInput" accept=".pdf,.doc,.docx,.pptx,.xlsx,.html,.htm,.png,.jpg,.jpeg,.bmp,.tiff,.tif,.txt,.md,.csv,.json,.xml,.log">
+    </div>
+    <div class="upload-progress" id="uploadProgress">
+      <div class="bar"></div>
+      <div class="label"></div>
     </div>
   </div>
 
   <div class="file-list-section">
     <h3>已上传文件</h3>
-    <div id="fileList">
-      <div class="empty-files">暂无文件</div>
-    </div>
+    <div id="fileList"><div class="empty-files">暂无文件</div></div>
   </div>
 </aside>
 
-<!-- Main Chat -->
+<!-- Main -->
 <section class="main">
-  <div class="chat-header">AI 问答</div>
+  <div class="chat-header">
+    <span class="title">AI 问答</span>
+    <div class="actions">
+      <button id="clearChatBtn" title="清除聊天记录">清除记录</button>
+    </div>
+  </div>
 
   <div class="chat-messages" id="chatMessages">
     <div class="welcome" id="welcomeState">
-      <div class="icon">💬</div>
+      <div class="icon">&#x1F4AC;</div>
       <h2>上传文件后开始提问</h2>
       <p>系统会基于你上传的文档内容回答所有问题，支持 PDF、Word 和纯文本文件</p>
     </div>
@@ -389,21 +355,70 @@ body {
   <div class="chat-input-area">
     <input type="text" id="chatInput" placeholder="输入问题，基于文档内容回答..." disabled>
     <button id="sendBtn" disabled>发送</button>
+    <button id="stopBtn" class="stop-btn">停止</button>
   </div>
 </section>
 
 <script>
-const uploadZone = document.getElementById('uploadZone');
-const fileInput = document.getElementById('fileInput');
-const fileList = document.getElementById('fileList');
-const chatMessages = document.getElementById('chatMessages');
-const chatInput = document.getElementById('chatInput');
-const sendBtn = document.getElementById('sendBtn');
-const statusBadge = document.getElementById('statusBadge');
-const welcomeState = document.getElementById('welcomeState');
+const LS_KEY = 'docqa_chat_messages';
 
-let isStreaming = false;
+// ── DOM refs ──────────────────────────────────────────────────
+const uploadZone   = document.getElementById('uploadZone');
+const fileInput    = document.getElementById('fileInput');
+const fileList     = document.getElementById('fileList');
+const chatMessages = document.getElementById('chatMessages');
+const chatInput    = document.getElementById('chatInput');
+const sendBtn      = document.getElementById('sendBtn');
+const stopBtn      = document.getElementById('stopBtn');
+const statusBadge  = document.getElementById('statusBadge');
+const welcomeState = document.getElementById('welcomeState');
+const uploadProg   = document.getElementById('uploadProgress');
+
+let isStreaming     = false;
+let currentStreamId = null;
 let _lastReadyState = null;
+
+// ── localStorage message persistence ──────────────────────────
+
+function loadMessages() {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch (e) { return []; }
+}
+
+function saveMessages(messages) {
+  try {
+    // keep last 200 messages max
+    const trimmed = messages.slice(-200);
+    localStorage.setItem(LS_KEY, JSON.stringify(trimmed));
+  } catch (e) { /* quota exceeded, ignore */ }
+}
+
+function restoreMessages() {
+  const msgs = loadMessages();
+  if (msgs.length === 0) return;
+  hideWelcome();
+  for (const m of msgs) {
+    if (m.role === 'user') {
+      appendMessageEl('user', m.content);
+    } else if (m.role === 'assistant') {
+      appendMessageEl('assistant', m.content);
+    } else if (m.role === 'warning') {
+      appendMessageEl('warning-msg', m.content);
+    } else {
+      appendMessageEl('system-msg', m.content);
+    }
+  }
+}
+
+function addMessageToStore(role, content) {
+  const msgs = loadMessages();
+  msgs.push({ role, content, ts: Date.now() });
+  saveMessages(msgs);
+}
+
+// ── DOM helpers ───────────────────────────────────────────────
 
 function scrollToBottom() {
   chatMessages.scrollTop = chatMessages.scrollHeight;
@@ -413,35 +428,45 @@ function hideWelcome() {
   welcomeState?.classList.add('hidden');
 }
 
-function addMessage(className, text) {
+function appendMessageEl(className, text) {
   hideWelcome();
   const el = document.createElement('div');
   el.className = 'message ' + className;
-  el.textContent = text;
+
+  if (className === 'assistant') {
+    const content = document.createElement('div');
+    content.className = 'content';
+    content.textContent = text;
+    el.appendChild(content);
+  } else {
+    el.textContent = text;
+  }
   chatMessages.appendChild(el);
   scrollToBottom();
   return el;
-}
-
-function addSystemMessage(text) {
-  return addMessage('system-msg', text);
 }
 
 function addUserMessage(text) {
-  return addMessage('user', text);
+  addMessageToStore('user', text);
+  return appendMessageEl('user', text);
 }
 
 function addAssistantMessage(text) {
-  const el = document.createElement('div');
-  el.className = 'message assistant';
-  const content = document.createElement('div');
-  content.className = 'content';
-  content.textContent = text;
-  el.appendChild(content);
-  chatMessages.appendChild(el);
-  scrollToBottom();
-  return el;
+  addMessageToStore('assistant', text);
+  return appendMessageEl('assistant', text);
 }
+
+function addSystemMessage(text) {
+  addMessageToStore('system', text);
+  return appendMessageEl('system-msg', text);
+}
+
+function addWarningMessage(text) {
+  addMessageToStore('warning', text);
+  return appendMessageEl('warning-msg', text);
+}
+
+// ── Upload with progress ─────────────────────────────────────
 
 uploadZone.addEventListener('click', () => fileInput.click());
 
@@ -468,26 +493,62 @@ fileInput.addEventListener('change', () => {
   }
 });
 
-async function uploadFile(file) {
+function uploadFile(file) {
   uploadZone.classList.add('processing');
-  addSystemMessage(`正在处理 "${file.name}" ...`);
+  addSystemMessage('正在处理 "' + file.name + '" ...');
+
+  const bar    = uploadProg.querySelector('.bar');
+  const label  = uploadProg.querySelector('.label');
+  uploadProg.classList.add('active');
+  bar.style.width = '0%';
+  label.textContent = '上传中 0%';
 
   const formData = new FormData();
   formData.append('file', file);
 
-  try {
-    const res = await fetch('/upload', { method:'POST', body:formData });
-    const data = await res.json();
+  const xhr = new XMLHttpRequest();
 
-    if (!res.ok) throw new Error(data.error);
+  xhr.upload.addEventListener('progress', (e) => {
+    if (e.lengthComputable) {
+      const pct = Math.round((e.loaded / e.total) * 100);
+      bar.style.width = pct + '%';
+      label.textContent = '上传中 ' + pct + '%';
+    }
+  });
 
-    addSystemMessage(`"${file.filename}" 处理完成 — ${data.chunks} 个文本块，共 ${data.total_chars} 字符`);
-    await refreshAll();
-  } catch (e) {
-    addSystemMessage(`处理失败: ${e.message}`);
-  } finally {
-    uploadZone.classList.remove('processing');
-  }
+  xhr.addEventListener('load', () => {
+    uploadProg.classList.remove('active');
+
+    try {
+      const data = JSON.parse(xhr.responseText);
+      if (xhr.status >= 200 && xhr.status < 300) {
+        addSystemMessage('"' + data.filename + '" 处理完成 — ' + data.chunks + ' 个文本块，共 ' + data.total_chars + ' 字符');
+        refreshAll();
+      } else {
+        addSystemMessage('处理失败: ' + (data.error || '未知错误'));
+      }
+    } catch (e) {
+      addSystemMessage('处理失败: 服务器返回异常');
+    }
+  });
+
+  xhr.addEventListener('error', () => {
+    uploadProg.classList.remove('active');
+    addSystemMessage('处理失败: 网络错误，请检查服务是否运行');
+  });
+
+  xhr.addEventListener('abort', () => {
+    uploadProg.classList.remove('active');
+  });
+
+  xhr.open('POST', '/upload');
+  xhr.send(formData);
+}
+
+// ── Status & file list ────────────────────────────────────────
+
+async function refreshAll() {
+  return Promise.all([refreshStatus(), refreshFileList()]);
 }
 
 async function refreshStatus() {
@@ -495,9 +556,7 @@ async function refreshStatus() {
     const res = await fetch('/api/status');
     const data = await res.json();
     updateStatusBadge(data.ready);
-  } catch (e) {
-    // ignore
-  }
+  } catch (e) { /* ignore */ }
 }
 
 function updateStatusBadge(ready) {
@@ -505,19 +564,11 @@ function updateStatusBadge(ready) {
   _lastReadyState = ready;
 
   statusBadge.className = 'status-badge ' + (ready ? 'ready' : 'empty');
-  statusBadge.textContent = '';
-  const dot = document.createElement('span');
-  dot.className = 'status-dot';
-  statusBadge.appendChild(dot);
-  statusBadge.appendChild(document.createTextNode(ready ? ' 知识库就绪' : ' 等待文件上传'));
+  statusBadge.innerHTML = '<span class="status-dot"></span> ' + (ready ? '知识库就绪' : '等待文件上传');
 
   chatInput.disabled = !ready;
   sendBtn.disabled = !ready;
   chatInput.placeholder = ready ? '输入问题，基于文档内容回答...' : '请先上传文件建立知识库';
-}
-
-function refreshAll() {
-  return Promise.all([refreshStatus(), refreshFileList()]);
 }
 
 async function refreshFileList() {
@@ -525,9 +576,7 @@ async function refreshFileList() {
     const res = await fetch('/api/files');
     const files = await res.json();
     renderFileList(files);
-  } catch (e) {
-    // ignore
-  }
+  } catch (e) { /* ignore */ }
 }
 
 fileList.addEventListener('click', (e) => {
@@ -539,33 +588,32 @@ fileList.addEventListener('click', (e) => {
 function renderFileList(files) {
   fileList.textContent = '';
   if (files.length === 0) {
-    const el = document.createElement('div');
-    el.className = 'empty-files';
-    el.textContent = '暂无文件';
-    fileList.appendChild(el);
+    fileList.innerHTML = '<div class="empty-files">暂无文件</div>';
     return;
   }
 
-  const typeIcons = { '.pdf':'PDF', '.docx':'DOC', '.txt':'TXT' };
-  const typeClasses = { '.pdf':'pdf', '.docx':'docx', '.txt':'txt' };
+  const typeIcons  = { '.pdf':'PDF','.docx':'DOC','.doc':'DOC','.txt':'TXT','.md':'MD','.pptx':'PPT','.xlsx':'XLS' };
+  const typeClasses = { '.pdf':'pdf','.docx':'docx','.doc':'docx','.txt':'txt','.md':'txt','.pptx':'xlsx','.xlsx':'xlsx' };
+  const imgExts = ['.png','.jpg','.jpeg','.bmp','.tiff','.tif'];
 
   files.forEach(f => {
     const item = document.createElement('div');
     item.className = 'file-item';
 
     const icon = document.createElement('div');
-    icon.className = 'file-icon ' + (typeClasses[f.type] || 'txt');
-    icon.textContent = typeIcons[f.type] || 'FILE';
+    const cls = imgExts.includes(f.type) ? 'img' : (typeClasses[f.type] || 'txt');
+    icon.className = 'file-icon ' + cls;
+    icon.textContent = imgExts.includes(f.type) ? 'IMG' : (typeIcons[f.type] || 'FILE');
     item.appendChild(icon);
 
     const info = document.createElement('div');
     info.className = 'file-info';
 
-    const nameEl = document.createElement('div');
-    nameEl.className = 'name';
-    nameEl.title = f.filename;
-    nameEl.textContent = f.filename;
-    info.appendChild(nameEl);
+    const nm = document.createElement('div');
+    nm.className = 'name';
+    nm.title = f.filename;
+    nm.textContent = f.filename;
+    info.appendChild(nm);
 
     const meta = document.createElement('div');
     meta.className = 'meta';
@@ -573,12 +621,12 @@ function renderFileList(files) {
     info.appendChild(meta);
     item.appendChild(info);
 
-    const delBtn = document.createElement('button');
-    delBtn.className = 'delete-btn';
-    delBtn.dataset.fileId = f.id;
-    delBtn.title = '删除';
-    delBtn.textContent = '×';
-    item.appendChild(delBtn);
+    const del = document.createElement('button');
+    del.className = 'delete-btn';
+    del.dataset.fileId = f.id;
+    del.title = '删除';
+    del.textContent = '\u00D7';
+    item.appendChild(del);
 
     fileList.appendChild(item);
   });
@@ -589,7 +637,10 @@ async function deleteFile(fileId) {
   await refreshAll();
 }
 
+// ── Chat with SSE streaming ───────────────────────────────────
+
 sendBtn.addEventListener('click', sendMessage);
+stopBtn.addEventListener('click', stopGeneration);
 chatInput.addEventListener('keydown', (e) => {
   if (e.key === 'Enter' && !e.shiftKey) {
     e.preventDefault();
@@ -613,18 +664,26 @@ async function* parseSSEStream(reader, decoder) {
   }
 }
 
+function setStreamingUI(streaming) {
+  isStreaming = streaming;
+  sendBtn.style.display = streaming ? 'none' : '';
+  stopBtn.classList.toggle('visible', streaming);
+  chatInput.disabled = streaming || !_lastReadyState;
+}
+
 async function sendMessage() {
   const question = chatInput.value.trim();
   if (!question || isStreaming) return;
 
-  isStreaming = true;
-  sendBtn.disabled = true;
+  setStreamingUI(true);
   chatInput.value = '';
   addUserMessage(question);
 
-  const assistantEl = addAssistantMessage('');
+  const assistantEl = appendMessageEl('assistant', '');
   assistantEl.classList.add('streaming');
   const contentEl = assistantEl.querySelector('.content');
+
+  let fullText = '';
 
   try {
     const res = await fetch('/chat', {
@@ -636,29 +695,85 @@ async function sendMessage() {
     if (!res.ok) {
       const err = await res.json();
       contentEl.textContent = '错误: ' + (err.error || '未知错误');
+      addMessageToStore('assistant', contentEl.textContent);
       return;
     }
 
     const reader = res.body.getReader();
     const decoder = new TextDecoder();
+
     for await (const data of parseSSEStream(reader, decoder)) {
+      if (data.stream_id) {
+        currentStreamId = data.stream_id;
+      }
+      if (data.warning) {
+        addWarningMessage(data.warning);
+      }
       if (data.error) {
         contentEl.textContent = '错误: ' + data.error;
+        addMessageToStore('assistant', contentEl.textContent);
       } else if (data.content) {
-        contentEl.textContent += data.content;
+        fullText += data.content;
+        contentEl.textContent = fullText;
         scrollToBottom();
+      } else if (data.done) {
+        // final — update with full response
+        if (data.full) {
+          contentEl.textContent = data.full;
+        }
+        addMessageToStore('assistant', fullText || data.full || '');
       }
     }
   } catch (e) {
-    contentEl.textContent = '连接错误: ' + e.message;
+    if (e.name === 'AbortError') {
+      contentEl.textContent = fullText || '(已停止生成)';
+      addMessageToStore('assistant', fullText || '(已停止生成)');
+    } else {
+      contentEl.textContent = '连接错误: ' + e.message;
+      addMessageToStore('assistant', contentEl.textContent);
+    }
   } finally {
     assistantEl.classList.remove('streaming');
-    isStreaming = false;
-    sendBtn.disabled = false;
+    setStreamingUI(false);
+    currentStreamId = null;
     chatInput.focus();
   }
 }
 
+async function stopGeneration() {
+  if (currentStreamId) {
+    // fire-and-forget cancel request
+    navigator.sendBeacon('/api/stream/' + currentStreamId + '/cancel');
+  }
+  // The AbortController alternative: we could abort the fetch,
+  // but sendBeacon is more reliable on page unload.
+  // For the stop button, we could also abort the fetch.
+}
+
+// Cancel stream on page unload
+window.addEventListener('beforeunload', () => {
+  if (currentStreamId) {
+    navigator.sendBeacon('/api/stream/' + currentStreamId + '/cancel');
+  }
+});
+
+// ── Clear chat ────────────────────────────────────────────────
+
+document.getElementById('clearChatBtn').addEventListener('click', () => {
+  localStorage.removeItem(LS_KEY);
+  chatMessages.innerHTML = '';
+  chatMessages.insertAdjacentHTML('afterbegin',
+    '<div class="welcome" id="welcomeState">' +
+    '<div class="icon">&#x1F4AC;</div>' +
+    '<h2>上传文件后开始提问</h2>' +
+    '<p>系统会基于你上传的文档内容回答所有问题，支持 PDF、Word 和纯文本文件</p>' +
+    '</div>'
+  );
+});
+
+// ── Startup ───────────────────────────────────────────────────
+
+restoreMessages();
 refreshAll();
 </script>
 </body>
