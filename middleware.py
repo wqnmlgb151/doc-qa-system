@@ -39,6 +39,11 @@ def sanitize_filename(filename: str) -> str:
     return filename.strip()
 
 
+def compose_safe_name(file_id: str, filename: str) -> str:
+    """Build a storage-safe filename: {file_id}_{sanitized_original_name}."""
+    return f"{file_id}_{sanitize_filename(filename)}"
+
+
 def check_rate_limit(endpoint: str) -> bool:
     global _store_check_count
     if endpoint not in _rate_limits:
@@ -79,27 +84,29 @@ def require_auth(f: "Callable") -> "Callable":
     return decorated
 
 
+_SECURITY_HEADERS = {
+    "Strict-Transport-Security": "max-age=31536000; includeSubDomains; preload",
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "DENY",
+    "Referrer-Policy": "strict-origin-when-cross-origin",
+    "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
+    "Content-Security-Policy": (
+        "default-src 'self'; "
+        "script-src 'self' 'unsafe-inline'; "
+        "style-src 'self' 'unsafe-inline'; "
+        "img-src 'self' data:; "
+        "font-src 'self'; "
+        "connect-src 'self'; "
+        "frame-ancestors 'none'; "
+        "base-uri 'self'; "
+        "form-action 'self'"
+    ),
+}
+
+
 def register_security_headers(app: "Flask") -> None:
     @app.after_request
     def add_security_headers(response):
-        response.headers["Strict-Transport-Security"] = (
-            "max-age=31536000; includeSubDomains; preload"
-        )
-        response.headers["X-Content-Type-Options"] = "nosniff"
-        response.headers["X-Frame-Options"] = "DENY"
-        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-        response.headers["Permissions-Policy"] = (
-            "camera=(), microphone=(), geolocation=()"
-        )
-        response.headers["Content-Security-Policy"] = (
-            "default-src 'self'; "
-            "script-src 'self' 'unsafe-inline'; "
-            "style-src 'self' 'unsafe-inline'; "
-            "img-src 'self' data:; "
-            "font-src 'self'; "
-            "connect-src 'self'; "
-            "frame-ancestors 'none'; "
-            "base-uri 'self'; "
-            "form-action 'self'"
-        )
+        for name, value in _SECURITY_HEADERS.items():
+            response.headers[name] = value
         return response

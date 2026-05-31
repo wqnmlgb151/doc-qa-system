@@ -9,6 +9,7 @@ from config import (
     JSON_DIR,
     KNOWLEDGE_STATE_FILE,
     RETRIEVAL_K_PRE_RERANK,
+    ensure_dir,
 )
 from document_loader import load_file
 from text_processor import ProcessResult, process_documents
@@ -18,7 +19,7 @@ from vector_store import (
     get_retriever,
     add_documents,
 )
-from middleware import sanitize_filename
+from middleware import compose_safe_name
 
 logger = logging.getLogger(__name__)
 
@@ -98,7 +99,7 @@ class KnowledgeBase:
 
     # ── file processing ─────────────────────────────────────────
 
-    def process_and_index_file(self, save_path: Path, original_filename: str) -> ProcessResult:
+    def process_and_index_file(self, save_path: Path, original_filename: str, file_id: str) -> ProcessResult:
         """Load a file, create chunks, and index into the vectorstore.
 
         Returns the ProcessResult for the caller to extract metadata.
@@ -108,7 +109,7 @@ class KnowledgeBase:
         docs = load_file(str(save_path))
         logger.info(f"文档加载成功，共 {len(docs)} 页/段")
 
-        result = process_documents(docs, original_filename)
+        result = process_documents(docs, original_filename, file_id)
         logger.info(f"文档处理完成: {result.chunk_count} chunks → {result.json_path}")
 
         if result.chunk_count == 0:
@@ -145,7 +146,7 @@ class KnowledgeBase:
                 return None
             fname = info.get("filename", "")
             if fname and self._vectorstore:
-                safe_name = f"{file_id}_{sanitize_filename(fname)}"
+                safe_name = compose_safe_name(file_id, fname)
                 try:
                     self._vectorstore.delete(where={"filename": safe_name})
                 except Exception:
@@ -160,7 +161,7 @@ class KnowledgeBase:
     def _write_state_file(self, data: list[dict]) -> None:
         """Persist file records to disk. I/O is outside the lock."""
         try:
-            KNOWLEDGE_STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
+            ensure_dir(KNOWLEDGE_STATE_FILE.parent)
             with open(KNOWLEDGE_STATE_FILE, "w", encoding="utf-8") as f:
                 json.dump(data, f, ensure_ascii=False, indent=2)
         except OSError as e:
@@ -180,9 +181,8 @@ class KnowledgeBase:
         for rec in records:
             fid = rec.get("id", "")
             fname = rec.get("filename", "")
-            safe_name = sanitize_filename(fname)
-            upload_path = UPLOAD_DIR / f"{fid}_{safe_name}"
-            json_path = JSON_DIR / f"{Path(fname).stem}.json"
+            upload_path = UPLOAD_DIR / compose_safe_name(fid, fname)
+            json_path = JSON_DIR / f"{fid}_{Path(fname).stem}.json"
             if upload_path.exists() and json_path.exists():
                 self._processed_files[fid] = rec
             else:

@@ -519,6 +519,7 @@ function uploadFile(file) {
 
   xhr.addEventListener('load', () => {
     uploadProg.classList.remove('active');
+    uploadZone.classList.remove('processing');
 
     try {
       const data = JSON.parse(xhr.responseText);
@@ -534,11 +535,13 @@ function uploadFile(file) {
   });
 
   xhr.addEventListener('error', () => {
+    uploadZone.classList.remove('processing');
     uploadProg.classList.remove('active');
     addSystemMessage('处理失败: 网络错误，请检查服务是否运行');
   });
 
   xhr.addEventListener('abort', () => {
+    uploadZone.classList.remove('processing');
     uploadProg.classList.remove('active');
   });
 

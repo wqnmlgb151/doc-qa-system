@@ -308,7 +308,7 @@ td { padding:8px 14px; border-bottom:1px solid var(--border); color:var(--text2)
 
 <!-- ====== 6: 安全设计 ====== -->
 <section class="slide" data-title="安全设计">
-  <h2>安全设计 — 8 层防护</h2>
+  <h2>安全设计 — 多层纵深防护</h2>
   <table>
     <tr><th>#</th><th>层级</th><th>措施</th><th>怎么做的</th></tr>
     <tr><td>1</td><td>传输层</td><td>文件大小限制</td><td>Flask MAX_CONTENT_LENGTH = 32MB，超了直接 413</td></tr>
@@ -368,7 +368,7 @@ td { padding:8px 14px; border-bottom:1px solid var(--border); color:var(--text2)
 <section class="slide" data-title="创新点">
   <h2>创新点总结</h2>
   <div class="grid2">
-    <div class="card"><div class="icon">&#x1F4D6;</div><h3>PDF 三级降级 OCR</h3><p>PyPDF → PyMuPDF → qwen-vl-max，自动适配文本/扫描/混合型 PDF。选云端方案而非本地 OCR，因为 Python 3.13 + Windows 下 PaddleOCR 存在 NumPy 版本冲突</p></div>
+    <div class="card"><div class="icon">&#x1F4D6;</div><h3>PDF 三级降级 + .doc 四级解析</h3><p>PDF：PyPDF → PyMuPDF → qwen-vl-max OCR，自动适配文本/扫描/混合型。.doc：python-docx → antiword → Word COM → 原始二进制提取，零依赖兜底</p></div>
     <div class="card"><div class="icon">&#x1F3AF;</div><h3>Cross-Encoder Rerank + 降级通知</h3><p>初检 12 → 精选 4，检索质量提升性价比最高的单点改动。API 异常时自动降级，前端黄色提示让用户可感知</p></div>
     <div class="card"><div class="icon">&#x1F512;</div><h3>线程安全 KnowledgeBase Class</h3><p>threading.Lock 保护所有共享状态，in-place mutation 解决 Python import 引用陷阱（重启丢数据根因）</p></div>
     <div class="card"><div class="icon">&#x1F4E1;</div><h3>Pre-flight 检索 + SSE 取消</h3><p>检索/重排/生成三阶段独立可监控可降级。stream_id + threading.Event 实现流式取消，离开页面自动停止 token 消耗</p></div>
@@ -479,7 +479,7 @@ td { padding:8px 14px; border-bottom:1px solid var(--border); color:var(--text2)
     </div>
     <div class="qa-card">
       <div class="q">Q: 安全性怎么保证？</div>
-      <div class="a">A: 8 层防护：文件大小 → 频率限制 → Token 认证 → CSP 安全头 → 文件名净化 → XSS 零注入架构 → 日志脱敏 → 127.0.0.1 本地绑定。5 轮审查全部通过。</div>
+      <div class="a">A: 多层纵深防护：文件大小限制 → 频率限流 → Token 认证 → CSP 安全头 → 文件名净化 → Prompt 注入防御（结构分隔符+防注入规则） → XSS 零注入架构 → 错误信息脱敏 → JSON 前缀命名防碰撞误删 → 127.0.0.1 本地绑定。多轮安全审查全部通过。</div>
     </div>
     <div class="qa-card">
       <div class="q">Q: 如果不用 DashScope 了，能换其他模型吗？</div>
@@ -537,7 +537,7 @@ const notes = [
   "<span class='say'>工程方面做了大量的重构和打磨。</span><br>最早的 app.py 是 330 行的巨石，所有东西塞在一起。经过 5 轮审查和重构，拆成了 5 个独立文件。状态管理从模块级全局变量改为 <span class='hi'>KnowledgeBase Class + threading.Lock 线程安全</span>。<br>踩过一个实际的坑——Python import 引用陷阱导致重启后数据丢失，改用 in-place mutation 解决了。这些都是<span class='hi'>写生产级代码才会遇到的问题</span>。",
   "&#x23F1; 1.5 min",
   // Slide 6: Security
-  "<span class='say'>安全方面做了 8 层防护。</span>从最外层的文件大小限制，到频率限制、Token 认证、安全响应头、输入净化、XSS 防护、日志脱敏，一直到部署层的本地绑定。<br>重点说一下<span class='hi'>零 XSS 架构</span>——前端全局禁用 innerHTML，只用 textContent 和 DOM API。不是靠程序员记得转义，而是<span class='hi'>从设计层面就杜绝了注入可能</span>。",
+  "<span class='say'>安全方面做了多层纵深防护。</span>从最外层的文件大小限制，到频率限制、Token 认证、安全响应头、Prompt 注入防御、输入净化、XSS 防护、错误脱敏、JSON 命名防碰撞，一直到部署层的本地绑定。<br>重点说一下<span class='hi'>零 XSS 架构</span>和<span class='hi2'>Prompt 注入防御</span>——前端全局禁用 innerHTML，只用 textContent 和 DOM API，后端系统提示词使用结构分隔符+显式防注入规则，从设计层面杜绝注入可能。",
   "&#x23F1; 1 min",
   // Slide 7: Frontend
   "<span class='say'>前端虽然是原生写的，但该有的体验都有。</span><br>拖拽上传带进度条、聊天记录 localStorage 持久化刷新不丢、流式生成可以停止、Rerank 降级有提示。<br>核心原则是：<span class='hi2'>不能让用户困惑</span>——出了问题要知道发生了什么。",
@@ -546,7 +546,7 @@ const notes = [
   "<span class='say'>测试和代码质量。</span>46 项 pytest 用例，text_processor 模块 100% 覆盖，state_manager 有线程安全并发测试。经过 5 轮代码审查，从安全到架构到细节，<span class='hi2'>目前零 CRITICAL 零 HIGH。</span>",
   "&#x23F1; 1 min",
   // Slide 9: Innovation
-  "<span class='say'>六个核心创新点：</span>PDF 三级 OCR、Cross-Encoder Rerank 加降级通知、线程安全 Class 封装、Pre-flight 三阶段检索架构、三层分离设计、46 项测试覆盖。<br>每个点背后都有实际遇到的问题驱动——比如云端 OCR 是因为 Windows 下本地方案兼容性差，Rerank 降级是因为 API 确实可能挂。",
+  "<span class='say'>核心创新点：</span>PDF 三级 OCR、.doc 四级降级解析、Cross-Encoder Rerank 加降级通知、Prompt 注入防御体系、线程安全 Class 封装、Pre-flight 三阶段检索架构、三层分离设计、46 项测试覆盖。<br>每个点背后都有实际遇到的问题驱动——比如云端 OCR 是因为 Windows 下本地方案兼容性差，.doc 解析是因为原系统中旧格式完全无法处理。",
   "&#x23F1; 1.5 min",
   // Slide 10: Demo
   "<span class='say'>接下来我演示一下实际效果。</span><br><span class='do'>按左边步骤操作：</span><br>1. 打开页面 → 2. 拖 PDF 上传 → 3. 提问 → 4. 重启恢复 → 5. 删除 → 6. 停止生成 → 7. 扫描版 OCR → 8. 其他格式。<br><span class='say'>每个步骤都有对应的解说词，照着念就行。</span>",

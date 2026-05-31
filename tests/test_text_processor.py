@@ -79,8 +79,8 @@ class TestSaveJson:
     def test_creates_json_file_with_correct_content(self, tmp_path):
         data = [{"chunk_id": 0, "content": "test", "char_count": 4, "metadata": {}}]
         with patch("text_processor.JSON_DIR", tmp_path):
-            path = save_json(data, "test_file.pdf")
-            assert path == str(tmp_path / "test_file.json")
+            path = save_json(data, "test_file.pdf", "id")
+            assert path == str(tmp_path / "id_test_file.json")
             saved = json.loads(Path(path).read_text(encoding="utf-8"))
             assert saved == data
 
@@ -88,13 +88,13 @@ class TestSaveJson:
         nested_dir = tmp_path / "sub" / "nested"
         data = [{"chunk_id": 0, "content": "x", "char_count": 1, "metadata": {}}]
         with patch("text_processor.JSON_DIR", nested_dir):
-            path = save_json(data, "doc.txt")
+            path = save_json(data, "doc.txt", "id")
             assert Path(path).exists()
 
     def test_strips_original_extension_and_uses_json(self, tmp_path):
         data: list = []
         with patch("text_processor.JSON_DIR", tmp_path):
-            path = save_json(data, "report.final.docx")
+            path = save_json(data, "report.final.docx", "id")
             assert path.endswith(".json")
             assert "report.final" in path
 
@@ -102,7 +102,7 @@ class TestSaveJson:
 class TestProcessDocuments:
     def test_returns_process_result_with_correct_fields(self):
         docs = [Document(page_content="Hello world. This is a test document.", metadata={"source": "test.txt"})]
-        result = process_documents(docs, "test.txt")
+        result = process_documents(docs, "test.txt", "id")
         assert isinstance(result, ProcessResult)
         assert result.chunk_count > 0
         assert result.total_chars > 0
@@ -112,7 +112,7 @@ class TestProcessDocuments:
 
     def test_total_chars_equals_sum_of_char_counts(self):
         docs = [Document(page_content="This is a test document with some content.", metadata={})]
-        result = process_documents(docs, "test.txt")
+        result = process_documents(docs, "test.txt", "id")
         expected = sum(d["char_count"] for d in result.json_data)
         assert result.total_chars == expected
 
@@ -121,7 +121,7 @@ class TestProcessDocuments:
             Document(page_content="First document with enough text to split properly.", metadata={"id": 1}),
             Document(page_content="Second document also with sufficient text here.", metadata={"id": 2}),
         ]
-        result = process_documents(docs, "multi.txt")
+        result = process_documents(docs, "multi.txt", "id")
         assert result.chunk_count >= 2
 
 

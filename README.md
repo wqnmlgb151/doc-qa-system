@@ -22,10 +22,12 @@ python app.py
 |------|------|
 | 多格式上传 | PDF / Word / PPT / Excel / HTML / 图片 / 文本（5 大类 19 种格式） |
 | PDF OCR | 扫描版 PDF 三级降级：PyPDF → PyMuPDF → DashScope 多模态 OCR |
+| .doc 解析 | 四级降级：python-docx → antiword → Word COM 自动化 → 原始二进制提取 |
 | Rerank 重排序 | Cross-encoder 精排，初检 12 → 精选 4，检索质量最高单点改进 |
-| 流式回答 | SSE 逐 token 渲染，支持取消生成 |
-| 知识库持久化 | 重启自动恢复，无需重新上传 |
-| 安全防护 | 8层防护：限流 / 认证 / HSTS / CSP / XSS 防护 / 文件净化 / 日志脱敏 |
+| 流式回答 | SSE 逐 token 渲染，支持取消生成，5 分钟超时自动清理 |
+| 知识库持久化 | 重启自动恢复，文件 ID 前缀命名防碰撞和误删 |
+| Prompt 防护 | 结构分隔符 + 显式防注入规则，抵抗文档/用户双重注入攻击 |
+| 安全防护 | 两层限流 / Bearer 认证 / HSTS / CSP / XSS 防护 / 文件名净化 / 路径安全 |
 
 ## API
 
@@ -48,11 +50,11 @@ routes.py              路由层 — HTTP 请求/响应 + pre-flight 检索
 middleware.py           中间件层 — 限流 / 认证 / 安全头 / 净化
 state_manager.py        状态管理 — KnowledgeBase Class + threading.Lock
         │
-document_loader.py      文档加载 — 5 大类格式 + PDF 三级 OCR
-text_processor.py       文本处理 — 拆分 + JSON 结构化
+document_loader.py      文档加载 — 5 大类格式 + PDF 三级 OCR + .doc 四级降级
+text_processor.py       文本处理 — 拆分 + JSON 结构化（file_id 前缀命名）
 vector_store.py         向量存储 — ChromaDB + DashScope 嵌入
 rerank.py               Cross-encoder 重排序（gte-rerank）
-qa_chain.py             RAG chain — LLM 生成（DeepSeek-V3）
+qa_chain.py             RAG chain — LLM 生成 + Prompt 注入防护
 ```
 
 ## 测试

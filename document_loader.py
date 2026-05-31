@@ -135,11 +135,78 @@ def load_image(file_path: str) -> List[Document]:
     return _make_single_doc(text, file_path)
 
 
+def _load_doc_via_com(file_path: str) -> str | None:
+    """Extract text from .doc using Word COM automation (Windows, requires pywin32)."""
+    try:
+        import pythoncom
+        import win32com.client
+    except ImportError:
+        return None
+
+    word = None
+    try:
+        pythoncom.CoInitialize()
+        word = win32com.client.Dispatch("Word.Application")
+        word.Visible = False
+        doc = word.Documents.Open(file_path)
+        try:
+            text = doc.Content.Text
+            return text.strip() or None
+        finally:
+            doc.Close()
+    except Exception as e:
+        logger.warning(f"Word COM 提取失败: {e}")
+        return None
+    finally:
+        if word is not None:
+            try:
+                word.Quit()
+            except Exception as e:
+                logger.warning(f"Word COM 清理失败 (Quit): {e}")
+        try:
+            pythoncom.CoUninitialize()
+        except Exception as e:
+            logger.warning(f"Word COM 清理失败 (CoUninitialize): {e}")
+
+
+_DOC_ENCODINGS = ("utf-16-le", "gbk", "utf-8", "latin-1")
+_DOC_READABLE_RE = (
+    r"[\u4e00-\u9fff\u3000-\u303f\uff00-\uffef"   # CJK
+    r"a-zA-Z0-9\s\.\,\;\:\!\?\(\)（）《》""''"     # ASCII words + common punctuation
+    r"\u00a0-\u00ff"                                # Latin-1 supplement
+    r"]+"
+)
+
+
+def _extract_text_from_doc_raw(file_path: str) -> str | None:
+    """Last resort: extract readable text from .doc binary without any dependencies."""
+    import re
+    try:
+        with open(file_path, "rb") as f:
+            data = f.read()
+    except OSError:
+        return None
+
+    text = None
+    for encoding in _DOC_ENCODINGS:
+        try:
+            text = data.decode(encoding, errors="ignore")
+            break
+        except Exception:
+            continue
+    if text is None:
+        return None
+
+    chunks = re.findall(_DOC_READABLE_RE, text)
+    result = "".join(c for c in chunks if len(c) > 3)
+    return result if len(result) > 80 else None
+
+
 def load_doc(file_path: str) -> List[Document]:
-    """处理旧版 .doc 格式 — 先尝试 python-docx 读取，再尝试 antiword"""
+    """处理旧版 .doc 格式 — 四级降级策略"""
     import subprocess
 
-    # 尝试用 python-docx 打开（部分 .doc 实际是 docx 格式）
+    # Level 1: python-docx（部分 .doc 实际是 docx 格式）
     try:
         docs = load_docx(file_path)
         if docs and docs[0].page_content.strip():
@@ -147,7 +214,7 @@ def load_doc(file_path: str) -> List[Document]:
     except Exception:
         pass
 
-    # 尝试用 antiword（如果系统装了）
+    # Level 2: antiword（如果系统装了）
     try:
         result = subprocess.run(
             ["antiword", file_path], capture_output=True, text=True, timeout=30
@@ -157,8 +224,19 @@ def load_doc(file_path: str) -> List[Document]:
     except (FileNotFoundError, subprocess.TimeoutExpired):
         pass
 
+    # Level 3: Word COM 自动化（Windows，需 pywin32）
+    text = _load_doc_via_com(file_path)
+    if text:
+        return _make_single_doc(text, file_path)
+
+    # Level 4: 原始二进制提取（零依赖最后兜底）
+    text = _extract_text_from_doc_raw(file_path)
+    if text:
+        return _make_single_doc(text, file_path)
+
     raise DocumentParseError(
-        "无法解析 .doc 文件。请用 Word 打开后另存为 .docx 格式再上传。"
+        "无法解析 .doc 文件。请用 Word 打开后另存为 .docx 格式再上传，"
+        "或执行 pip install pywin32 启用 Word COM 自动化解析。"
     )
 
 
@@ -251,7 +329,8 @@ def load_file(file_path: str) -> List[Document]:
 
     loader = LOADERS[ext]
     docs = loader(file_path)
-    for doc in docs:
-        doc.metadata["filename"] = Path(file_path).name
-        doc.metadata["file_type"] = ext
-    return docs
+    fname = Path(file_path).name
+    return [
+        Document(page_content=doc.page_content, metadata={**doc.metadata, "filename": fname, "file_type": ext})
+        for doc in docs
+    ]

@@ -3,7 +3,7 @@ import logging
 
 from flask import Flask
 
-from config import UPLOAD_DIR, JSON_DIR
+from config import UPLOAD_DIR, JSON_DIR, ensure_dir
 from middleware import register_security_headers
 from routes import api
 from state_manager import init_vectorstore
@@ -14,8 +14,8 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__, static_folder="static", static_url_path="")
 app.config["MAX_CONTENT_LENGTH"] = 32 * 1024 * 1024
 
-UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
-JSON_DIR.mkdir(parents=True, exist_ok=True)
+ensure_dir(UPLOAD_DIR)
+ensure_dir(JSON_DIR)
 
 register_security_headers(app)
 app.register_blueprint(api)

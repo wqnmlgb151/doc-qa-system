@@ -7,7 +7,7 @@ from pathlib import Path
 from flask import Blueprint, request, jsonify, send_from_directory, Response, stream_with_context
 
 from config import ALLOWED_EXTENSIONS, UPLOAD_DIR, JSON_DIR, MAX_QUESTION_LENGTH
-from middleware import check_rate_limit, require_auth, sanitize_filename
+from middleware import check_rate_limit, require_auth, compose_safe_name
 from document_loader import DocumentLoaderError
 from rerank import rerank_documents
 from qa_chain import create_chain_from_docs
@@ -20,14 +20,25 @@ api = Blueprint("api", __name__)
 # ── stream cancellation ────────────────────────────────────────
 
 import threading
+import time
 
-_active_streams: dict[str, threading.Event] = {}
+_active_streams: dict[str, tuple[threading.Event, float]] = {}
+_STREAM_TTL = 300  # 5 minutes — stale entries evicted on next registration
+
+
+def _prune_stale_streams(now: float | None = None) -> None:
+    """Remove stream entries that have exceeded the TTL."""
+    if now is None:
+        now = time.time()
+    stale = [sid for sid, (_, ts) in _active_streams.items() if now - ts > _STREAM_TTL]
+    for sid in stale:
+        _active_streams.pop(sid, None)
 
 
 def _cancel_stream(stream_id: str):
-    event = _active_streams.get(stream_id)
-    if event:
-        event.set()
+    entry = _active_streams.get(stream_id)
+    if entry:
+        entry[0].set()
 
 
 # ── routes ─────────────────────────────────────────────────────
@@ -64,17 +75,17 @@ def upload():
         return jsonify({"error": "不支持的文件类型", "allowed": list(ALLOWED_EXTENSIONS)}), 400
 
     file_id = uuid.uuid4().hex[:8]
-    safe_name = f"{file_id}_{sanitize_filename(file.filename)}"
+    safe_name = compose_safe_name(file_id, file.filename)
     save_path = UPLOAD_DIR / safe_name
     file.save(str(save_path))
     logger.info(f"文件已保存: {save_path}")
 
     try:
-        result = kb.process_and_index_file(save_path, file.filename)
+        result = kb.process_and_index_file(save_path, file.filename, file_id)
     except DocumentLoaderError as e:
         logger.error(f"文档加载失败: {e} — {e.detail}")
         _cleanup_upload(save_path)
-        return jsonify({"error": str(e), "detail": e.detail}), 400
+        return jsonify({"error": str(e)}), 400
     except Exception as e:
         logger.error(f"处理文件失败: {e}", exc_info=True)
         _cleanup_upload(save_path)
@@ -95,7 +106,6 @@ def upload():
         "filename": file.filename,
         "chunks": result.chunk_count,
         "total_chars": result.total_chars,
-        "json_path": result.json_path,
     })
 
 
@@ -134,7 +144,8 @@ def chat():
     chain = create_chain_from_docs(rerank_result.docs, streaming=True)
     stream_id = uuid.uuid4().hex
     cancel_event = threading.Event()
-    _active_streams[stream_id] = cancel_event
+    _prune_stale_streams()
+    _active_streams[stream_id] = (cancel_event, time.time())
 
     def generate():
         try:
@@ -195,10 +206,8 @@ def delete_file(file_id: str):
     if info is None:
         return jsonify({"error": "文件不存在"}), 404
 
-    safe_name = sanitize_filename(info.get("filename", ""))
     _rm_glob(UPLOAD_DIR, f"{file_id}_*")
-    if safe_name:
-        _rm_glob(JSON_DIR, f"{Path(safe_name).stem}*")
+    _rm_glob(JSON_DIR, f"{file_id}_*")
 
     return jsonify({"success": True})
 
