@@ -182,7 +182,11 @@ class KnowledgeBase:
             fid = rec.get("id", "")
             fname = rec.get("filename", "")
             upload_path = UPLOAD_DIR / compose_safe_name(fid, fname)
-            json_path = JSON_DIR / f"{fid}_{Path(fname).stem}.json"
+            stem = Path(fname).stem
+            # Try new naming first, then old (backwards compat)
+            json_path = JSON_DIR / f"{fid}_{stem}.json"
+            if not json_path.exists():
+                json_path = JSON_DIR / f"{stem}.json"
             if upload_path.exists() and json_path.exists():
                 self._processed_files[fid] = rec
             else:
